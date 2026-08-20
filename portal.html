@@ -823,12 +823,6 @@
     gap:10px;
     flex-shrink:0;
   }
-  .dash-row-rate{
-    font-family:'JetBrains Mono', monospace;
-    font-size:10.5px;
-    color:var(--text-sub);
-    white-space:nowrap;
-  }
   .dash-row-status{
     font-family:'JetBrains Mono', monospace;
     font-size:10.5px;
@@ -1348,7 +1342,6 @@
                     </div>
                   </div>
                   <div class="dash-row-meta">
-                    <span class="dash-row-rate">R7,800–R9,500/day</span>
                     <span class="dash-row-status pass">AVAILABLE</span>
                     <button class="dash-row-star" type="button" aria-label="Shortlist Thabo M." aria-pressed="false">☆</button>
                   </div>
@@ -1362,7 +1355,6 @@
                     </div>
                   </div>
                   <div class="dash-row-meta">
-                    <span class="dash-row-rate">R6,200–R7,600/day</span>
                     <span class="dash-row-status pass">AVAILABLE</span>
                     <button class="dash-row-star" type="button" aria-label="Shortlist Karabo S." aria-pressed="false">☆</button>
                   </div>
@@ -1376,7 +1368,6 @@
                     </div>
                   </div>
                   <div class="dash-row-meta">
-                    <span class="dash-row-rate">R6,800–R8,200/day</span>
                     <span class="dash-row-status fail">ENGAGED</span>
                     <button class="dash-row-star" type="button" aria-label="Shortlist Sipho K." aria-pressed="false">☆</button>
                   </div>
@@ -1390,7 +1381,6 @@
                     </div>
                   </div>
                   <div class="dash-row-meta">
-                    <span class="dash-row-rate">R5,400–R6,600/day</span>
                     <span class="dash-row-status pass">AVAILABLE</span>
                     <button class="dash-row-star" type="button" aria-label="Shortlist Aisha R." aria-pressed="false">☆</button>
                   </div>
@@ -1713,10 +1703,10 @@
         filterLabel: 'Software Dev · Senior',
         available: 18, engaged: 6, shortlisted: 9,
         rows: [
-          { status:'pass', initials:'TM', name:'Thabo M.', title:'Senior Software Engineer', years:8, rate:'R7,800–R9,500/day', availability:'AVAILABLE' },
-          { status:'pass', initials:'KS', name:'Karabo S.', title:'Backend Engineer', years:5, rate:'R6,200–R7,600/day', availability:'AVAILABLE' },
-          { status:'fail', initials:'SK', name:'Sipho K.', title:'Full-Stack Engineer', years:6, rate:'R6,800–R8,200/day', availability:'ENGAGED' },
-          { status:'pass', initials:'AR', name:'Aisha R.', title:'Frontend Engineer', years:4, rate:'R5,400–R6,600/day', availability:'AVAILABLE' }
+          { status:'pass', initials:'TM', name:'Thabo M.', title:'Senior Software Engineer', years:8, availability:'AVAILABLE' },
+          { status:'pass', initials:'KS', name:'Karabo S.', title:'Backend Engineer', years:5, availability:'AVAILABLE' },
+          { status:'fail', initials:'SK', name:'Sipho K.', title:'Full-Stack Engineer', years:6, availability:'ENGAGED' },
+          { status:'pass', initials:'AR', name:'Aisha R.', title:'Frontend Engineer', years:4, availability:'AVAILABLE' }
         ],
         enquiryText:'3 consultants shortlisted for a project-based engagement starting 01 July',
         engagement:'Project-Based', duration:'3 months',
@@ -1727,10 +1717,10 @@
         filterLabel: 'AI & Machine Learning · Mid–Senior',
         available: 11, engaged: 4, shortlisted: 5,
         rows: [
-          { status:'pass', initials:'PN', name:'Priya N.', title:'Lead ML Engineer', years:7, rate:'R9,200–R11,000/day', availability:'AVAILABLE' },
-          { status:'pass', initials:'NP', name:'Naledi P.', title:'ML Engineer', years:6, rate:'R8,000–R9,800/day', availability:'AVAILABLE' },
-          { status:'fail', initials:'FI', name:'Farhan I.', title:'Applied AI Engineer', years:4, rate:'R7,000–R8,600/day', availability:'ENGAGED' },
-          { status:'pass', initials:'ZB', name:'Zola B.', title:'Data Scientist', years:5, rate:'R7,400–R8,900/day', availability:'AVAILABLE' }
+          { status:'pass', initials:'PN', name:'Priya N.', title:'Lead ML Engineer', years:7, availability:'AVAILABLE' },
+          { status:'pass', initials:'NP', name:'Naledi P.', title:'ML Engineer', years:6, availability:'AVAILABLE' },
+          { status:'fail', initials:'FI', name:'Farhan I.', title:'Applied AI Engineer', years:4, availability:'ENGAGED' },
+          { status:'pass', initials:'ZB', name:'Zola B.', title:'Data Scientist', years:5, availability:'AVAILABLE' }
         ],
         enquiryText:'2 consultants shortlisted for a full-time engagement starting 15 August',
         engagement:'Full-Time', duration:'Permanent',
@@ -1741,10 +1731,10 @@
         filterLabel: 'DevOps & Cloud · Senior',
         available: 9, engaged: 3, shortlisted: 4,
         rows: [
-          { status:'pass', initials:'JV', name:'Jaco V.', title:'Senior DevOps Engineer', years:7, rate:'R8,600–R10,200/day', availability:'AVAILABLE' },
-          { status:'pass', initials:'NT', name:'Nomsa T.', title:'Cloud Infrastructure Engineer', years:5, rate:'R7,200–R8,800/day', availability:'AVAILABLE' },
-          { status:'fail', initials:'WB', name:'Werner B.', title:'Site Reliability Engineer', years:6, rate:'R8,000–R9,600/day', availability:'ENGAGED' },
-          { status:'pass', initials:'KM', name:'Kagiso M.', title:'Platform Engineer', years:4, rate:'R6,400–R7,800/day', availability:'AVAILABLE' }
+          { status:'pass', initials:'JV', name:'Jaco V.', title:'Senior DevOps Engineer', years:7, availability:'AVAILABLE' },
+          { status:'pass', initials:'NT', name:'Nomsa T.', title:'Cloud Infrastructure Engineer', years:5, availability:'AVAILABLE' },
+          { status:'fail', initials:'WB', name:'Werner B.', title:'Site Reliability Engineer', years:6, availability:'ENGAGED' },
+          { status:'pass', initials:'KM', name:'Kagiso M.', title:'Platform Engineer', years:4, availability:'AVAILABLE' }
         ],
         enquiryText:'2 consultants shortlisted for a project-based engagement starting 01 October',
         engagement:'Project-Based', duration:'4 months',
@@ -1755,10 +1745,10 @@
         filterLabel: 'Design & UX · All levels',
         available: 7, engaged: 2, shortlisted: 4,
         rows: [
-          { status:'pass', initials:'ZM', name:'Zanele M.', title:'Senior Product Designer', years:8, rate:'R7,600–R9,000/day', availability:'AVAILABLE' },
-          { status:'pass', initials:'LO', name:'Liam O.', title:'UX Researcher', years:5, rate:'R6,000–R7,200/day', availability:'AVAILABLE 12 JUN' },
-          { status:'fail', initials:'AD', name:'Amahle D.', title:'Product Designer', years:3, rate:'R4,800–R5,900/day', availability:'ENGAGED' },
-          { status:'pass', initials:'KF', name:'Kyle F.', title:'UI Designer', years:4, rate:'R5,200–R6,300/day', availability:'AVAILABLE' }
+          { status:'pass', initials:'ZM', name:'Zanele M.', title:'Senior Product Designer', years:8, availability:'AVAILABLE' },
+          { status:'pass', initials:'LO', name:'Liam O.', title:'UX Researcher', years:5, availability:'AVAILABLE 12 JUN' },
+          { status:'fail', initials:'AD', name:'Amahle D.', title:'Product Designer', years:3, availability:'ENGAGED' },
+          { status:'pass', initials:'KF', name:'Kyle F.', title:'UI Designer', years:4, availability:'AVAILABLE' }
         ],
         enquiryText:'1 consultant shortlisted for a part-time engagement, two days a week',
         engagement:'Part-Time', duration:'2 days / week',
@@ -1769,10 +1759,10 @@
         filterLabel: 'Project & Product · Lead',
         available: 5, engaged: 3, shortlisted: 3,
         rows: [
-          { status:'pass', initials:'RT', name:'Ryan T.', title:'Delivery Lead', years:9, rate:'R9,500–R11,500/day', availability:'AVAILABLE' },
-          { status:'pass', initials:'NK', name:'Nomvula K.', title:'Product Manager', years:6, rate:'R8,200–R9,900/day', availability:'AVAILABLE' },
-          { status:'fail', initials:'DF', name:'Dean F.', title:'Programme Manager', years:10, rate:'R10,200–R12,400/day', availability:'ENGAGED' },
-          { status:'pass', initials:'LN', name:'Lerato N.', title:'Scrum Master', years:5, rate:'R6,600–R7,800/day', availability:'AVAILABLE' }
+          { status:'pass', initials:'RT', name:'Ryan T.', title:'Delivery Lead', years:9, availability:'AVAILABLE' },
+          { status:'pass', initials:'NK', name:'Nomvula K.', title:'Product Manager', years:6, availability:'AVAILABLE' },
+          { status:'fail', initials:'DF', name:'Dean F.', title:'Programme Manager', years:10, availability:'ENGAGED' },
+          { status:'pass', initials:'LN', name:'Lerato N.', title:'Scrum Master', years:5, availability:'AVAILABLE' }
         ],
         enquiryText:'1 consultant shortlisted for a project-based engagement starting 01 September',
         engagement:'Project-Based', duration:'6 months',
@@ -1813,7 +1803,6 @@
                 '</div>' +
               '</div>' +
               '<div class="dash-row-meta">' +
-                '<span class="dash-row-rate">' + r.rate + '</span>' +
                 '<span class="dash-row-status ' + r.status + '">' + r.availability + '</span>' +
                 '<button class="dash-row-star" type="button" aria-label="Shortlist ' + r.name + '" aria-pressed="false">☆</button>' +
               '</div>' +

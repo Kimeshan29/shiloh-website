@@ -866,7 +866,6 @@
             <li><span class="bullet"></span> Real-world blockers handled — a waitForOtp helper polls for codes via Twilio or Mac Messages</li>
             <li><span class="bullet"></span> Quick Launch — open any URL on an agent machine for an instant eyeball check</li>
           </ul>
-          <div class="gap-note"><strong>Honest gap:</strong> test type is currently a naming convention on suites, not a first-class field. Explicit smoke/sanity/regression tags with one-click "run the smoke pack" are on the roadmap.</div>
         </div>
         <div class="feature-visual reveal">
           <div class="mock-card">
@@ -1399,42 +1398,6 @@
         </div>
       </div>
 
-      <div class="feature-divider"></div>
-
-      <div class="section-header reveal">
-        <span class="eyebrow mono">// COMING NEXT</span>
-        <h2>The roadmap, in priority order.</h2>
-      </div>
-      <div class="roadmap-list reveal-stagger">
-        <div class="roadmap-item reveal">
-          <span class="roadmap-priority mono">01</span>
-          <div><h4>CI-native triggers</h4><p>Machine API tokens (today's auth is user JWT), a GitHub Actions snippet, and webhooks back to the PR with pass/fail status.</p></div>
-        </div>
-        <div class="roadmap-item reveal">
-          <span class="roadmap-priority mono">02</span>
-          <div><h4>First-class test-type tags</h4><p>Smoke / sanity / regression as a field on suites, with "run all smoke" as one dispatch.</p></div>
-        </div>
-        <div class="roadmap-item reveal">
-          <span class="roadmap-priority mono">03</span>
-          <div><h4>Scheduled runs</h4><p>Nightly regression without a human clicking anything.</p></div>
-        </div>
-        <div class="roadmap-item reveal">
-          <span class="roadmap-priority mono">04</span>
-          <div><h4>Multi-agent parallelism</h4><p>Fan a pack out across agents, or target a named agent per suite.</p></div>
-        </div>
-        <div class="roadmap-item reveal">
-          <span class="roadmap-priority mono">05</span>
-          <div><h4>Environment configs</h4><p>Per-run target environment selection — staging or production URL sets.</p></div>
-        </div>
-        <div class="roadmap-item reveal">
-          <span class="roadmap-priority mono">06</span>
-          <div><h4>iOS automation</h4><p>The Appium adapter was deliberately built to extend from Android to iOS.</p></div>
-        </div>
-        <div class="roadmap-item reveal">
-          <span class="roadmap-priority mono">07</span>
-          <div><h4>Flaky-trend intelligence</h4><p>Aggregate the existing per-failure flaky/real-bug classification into a flakiness score over time.</p></div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -1447,11 +1410,11 @@
         <p>We'd rather tell you what's not built yet than have you find out mid-engagement.</p>
       </div>
       <div class="gaps-list reveal-stagger">
-        <div class="gaps-item reveal"><span class="mark">▲</span>Test types are a suite-naming convention today, not a field — see roadmap #2.</div>
-        <div class="gaps-item reveal"><span class="mark">▲</span>CI dispatch works but authenticates as a user, not a machine token yet — see roadmap #1.</div>
-        <div class="gaps-item reveal"><span class="mark">▲</span>No scheduler yet — every run is human- or API-triggered — see roadmap #3.</div>
-        <div class="gaps-item reveal"><span class="mark">▲</span>One agent per run today — no parallel fan-out yet — see roadmap #4.</div>
-        <div class="gaps-item reveal"><span class="mark">▲</span>Android only on mobile — iOS is a planned framework extension — see roadmap #6.</div>
+        <div class="gaps-item reveal"><span class="mark">▲</span>Test types are a suite-naming convention today, not a field.</div>
+        <div class="gaps-item reveal"><span class="mark">▲</span>CI dispatch works but authenticates as a user, not a machine token yet.</div>
+        <div class="gaps-item reveal"><span class="mark">▲</span>No scheduler yet — every run is human- or API-triggered.</div>
+        <div class="gaps-item reveal"><span class="mark">▲</span>One agent per run today — no parallel fan-out yet.</div>
+        <div class="gaps-item reveal"><span class="mark">▲</span>Android only on mobile — iOS is a planned framework extension.</div>
       </div>
     </div>
   </section>
