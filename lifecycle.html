@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Lifecycle — Shiloh Pulse</title>
+<meta name="description" content="How a build actually moves through Shiloh Pulse — Intake, AI Generation, Execution, AI Analysis, Reports Out, Ship Back — stage by stage, with generic examples and before/after comparisons.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='28' y2='28' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%2322D3EE'/%3E%3Cstop offset='1' stop-color='%2322E5E5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='14' cy='8.3' r='4.4' fill='none' stroke='url(%23g)' stroke-width='1.3'/%3E%3Crect x='12.4' y='6.7' width='3.2' height='3.2' transform='rotate(45 14 8.3)' fill='url(%23g)'/%3E%3Crect x='13.4' y='12.7' width='1.2' height='11.4' rx='0.6' fill='url(%23g)'/%3E%3Crect x='12.4' y='13.8' width='3.2' height='1' rx='0.5' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050A12;
+    --surface:#0A121D;
+    --surface-2:#0F1A28;
+    --border:#1C2B3A;
+    --border-glow:rgba(34,225,225,0.35);
+
+    --blue:#22D3EE;
+    --blue-light:#1D4ED8;
+    --cyan:#22E5E5;
+    --purple:#8B5CF6;
+    --green:#10B981;
+    --red:#EF4444;
+    --amber:#F59E0B;
+
+    --text:#F1FAFC;
+    --text-sub:#9FB4C4;
+    --text-muted:#5C7488;
+
+    --display: clamp(44px, 6.5vw, 84px);
+    --h1: clamp(32px, 4.6vw, 56px);
+    --h2: clamp(22px, 2.8vw, 36px);
+    --radius-sm:6px; --radius:10px; --radius-lg:16px; --radius-xl:24px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:400;
+    line-height:1.5;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+  button{ font-family:inherit; cursor:pointer; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  .container{ max-width:1200px; margin:0 auto; padding:0 32px; }
+  @media (max-width:640px){ .container{ padding:0 20px; } }
+
+  .reveal{ opacity:0; transform:translateY(24px); transition:opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible{ opacity:1; transform:translateY(0); }
+  .reveal-stagger .reveal:nth-child(1){ transition-delay:0ms; }
+  .reveal-stagger .reveal:nth-child(2){ transition-delay:80ms; }
+  .reveal-stagger .reveal:nth-child(3){ transition-delay:160ms; }
+  .reveal-stagger .reveal:nth-child(4){ transition-delay:240ms; }
+  .reveal-stagger .reveal:nth-child(5){ transition-delay:320ms; }
+  .reveal-stagger .reveal:nth-child(6){ transition-delay:400ms; }
+  .reveal-stagger .reveal:nth-child(7){ transition-delay:480ms; }
+
+  /* ---------- Nav ---------- */
+  header.nav{
+    position:fixed; top:0; left:0; right:0; height:64px; z-index:1000;
+    background:rgba(5,10,18,0.75);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-inner{
+    max-width:1200px; margin:0 auto; height:64px; padding:0 32px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{ width:18px; height:18px; flex-shrink:0; }
+  .brand-word{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:15px;
+    letter-spacing:0.15em; color:var(--text);
+  }
+  .brand-sub{
+    font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--cyan);
+    letter-spacing:0.1em; margin-left:2px; padding-left:10px; border-left:1px solid var(--border);
+  }
+  .nav-links{ display:flex; align-items:center; gap:32px; }
+  .nav-links a{
+    font-size:13px; font-weight:500; color:var(--text-muted); transition:color 0.2s ease;
+  }
+  .nav-links a:hover{ color:var(--text); }
+  .nav-cta{
+    border:1px solid var(--border-glow); background:transparent; color:var(--blue-light);
+    padding:8px 20px; border-radius:6px; font-size:13px; font-weight:500;
+    transition:background 0.2s ease; white-space:nowrap;
+  }
+  .nav-cta:hover{ background:rgba(34,225,225,0.12); }
+  .hamburger{
+    display:none; flex-direction:column; gap:5px; background:none; border:none; padding:8px;
+  }
+  .hamburger span{ width:22px; height:2px; background:var(--text); transition:transform 0.3s ease, opacity 0.3s ease; }
+  .hamburger.open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2){ opacity:0; }
+  .hamburger.open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+  .mobile-menu{
+    position:fixed; top:64px; left:0; right:0; background:var(--surface);
+    border-bottom:1px solid var(--border); display:flex; flex-direction:column;
+    padding:16px 20px 24px; gap:4px; transform:translateY(-120%); transition:transform 0.35s ease; z-index:999;
+  }
+  .mobile-menu.open{ transform:translateY(0); }
+  .mobile-menu a{ padding:14px 4px; font-size:15px; color:var(--text-sub); border-bottom:1px solid var(--border); }
+  .mobile-menu .nav-cta{ margin-top:12px; text-align:center; }
+  @media (max-width:940px){ .nav-links{ display:none; } .hamburger{ display:flex; } }
+  @media (min-width:941px){ .mobile-menu{ display:none; } }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative; min-height:70vh; display:flex; align-items:center; justify-content:center;
+    background:var(--bg); overflow:hidden; padding-top:140px; padding-bottom:60px;
+  }
+  .hero::before{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse 80% 55% at 50% 0%, rgba(34,225,225,0.14) 0%, transparent 60%);
+    pointer-events:none;
+  }
+  .hero-scanlines{
+    position:absolute; inset:0;
+    background:repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px);
+    pointer-events:none;
+  }
+  .hero-scepter{
+    position:absolute; top:50%; right:-4%; transform:translateY(-50%);
+    width:min(40vw, 480px); height:min(66vh, 540px);
+    pointer-events:none;
+  }
+  @media (max-width:900px){ .hero-scepter{ opacity:0.45; right:-26%; } }
+  .hero-content{ position:relative; z-index:2; max-width:780px; margin:0 auto; padding:0 32px; text-align:center; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--cyan);
+    letter-spacing:0.2em; text-transform:uppercase; margin-bottom:24px; display:block;
+  }
+  .hero-headline{
+    font-family:'Space Grotesk', sans-serif; font-size:var(--display); font-weight:300; line-height:1.05; color:var(--text);
+  }
+  .hero-sub{
+    font-family:'Space Grotesk', sans-serif; font-size:19px; font-weight:400; color:var(--text-sub);
+    max-width:620px; margin:24px auto 0;
+  }
+  .hero-ctas{ margin-top:44px; display:flex; align-items:center; justify-content:center; gap:28px; flex-wrap:wrap; }
+  .btn-primary{
+    display:inline-flex; align-items:center; gap:8px; padding:14px 28px; font-size:16px; font-weight:600;
+    color:#04141A; border-radius:8px; border:1px solid var(--cyan); background:var(--cyan);
+    transition:box-shadow 0.3s ease, transform 0.2s ease;
+  }
+  .btn-primary:hover{ box-shadow:0 0 40px rgba(34,225,225,0.3), 0 0 80px rgba(34,225,225,0.15); transform:translateY(-1px); }
+  .btn-secondary{
+    display:inline-flex; align-items:center; gap:6px; color:var(--cyan); font-size:15px; font-weight:500;
+    border-bottom:1px solid transparent; transition:border-color 0.2s ease;
+  }
+  .btn-secondary:hover{ border-color:var(--cyan); }
+
+  /* ---------- Sections ---------- */
+  section{ position:relative; padding:112px 0; }
+  @media (max-width:640px){ section{ padding:64px 0; } }
+  .section-header{ max-width:680px; margin:0 auto 56px; text-align:center; }
+  .section-header .eyebrow{ text-align:center; }
+  .section-header h2{ font-size:var(--h1); font-weight:300; line-height:1.1; color:var(--text); text-wrap:balance; }
+  .section-header p{ font-size:16.5px; color:var(--text-sub); margin-top:18px; line-height:1.65; }
+  .band{ background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+
+  /* ---------- Feature deep-dive (shared with pulse.html) ---------- */
+  .feature-row{ display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; }
+  @media (max-width:900px){ .feature-row{ grid-template-columns:1fr; gap:40px; } }
+  .feature-row.reverse .feature-copy{ order:2; }
+  .feature-row.reverse .feature-visual{ order:1; }
+  @media (max-width:900px){ .feature-row.reverse .feature-copy{ order:1; } .feature-row.reverse .feature-visual{ order:2; } }
+  .feature-copy h2{ font-size:var(--h2); font-weight:300; line-height:1.2; margin:16px 0 16px; }
+  .feature-copy p.lede{ font-size:15.5px; color:var(--text-sub); line-height:1.7; margin-bottom:8px; }
+  .feature-list{ display:flex; flex-direction:column; gap:12px; margin-bottom:8px; }
+  .feature-list li{ display:flex; gap:10px; align-items:flex-start; font-size:14px; color:var(--text-sub); line-height:1.5; }
+  .feature-list .bullet{ width:7px; height:7px; margin-top:6px; flex-shrink:0; background:var(--cyan); transform:rotate(45deg); }
+
+  /* ---------- Mock UI card (reused shape) ---------- */
+  .mock-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:22px; box-shadow:0 0 40px rgba(34,225,225,0.1), 0 0 80px rgba(34,225,225,0.05);
+  }
+  .mock-topbar{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-family:'JetBrains Mono', monospace;
+    font-size:10.5px; color:var(--text-muted); padding-bottom:14px; border-bottom:1px solid var(--border); margin-bottom:14px;
+  }
+  .live-dot{
+    width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block;
+    margin-right:6px; animation:pulseDot 1.6s ease-in-out infinite;
+  }
+  @keyframes pulseDot{ 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+
+  .gen-tree{ display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .gen-feature{ font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--text); font-weight:600; margin-top:6px; }
+  .gen-feature:first-child{ margin-top:0; }
+  .gen-sub{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--text-muted); padding-left:14px; }
+  .gen-case{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:7px 10px; margin-left:14px; border-radius:var(--radius-sm); background:var(--surface-2);
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--text-sub);
+  }
+  .gen-tag{ font-size:9px; padding:2px 7px; border-radius:999px; letter-spacing:0.04em; flex-shrink:0; }
+  .gen-tag.pos{ color:var(--green); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); }
+  .gen-tag.neg{ color:var(--red); background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); }
+  .gen-tag.edge{ color:var(--amber); background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); }
+  .gen-footer{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--cyan); border-top:1px solid var(--border); padding-top:12px; margin-top:4px; }
+
+  .pill{ font-family:'JetBrains Mono', monospace; font-size:11px; padding:5px 11px; border-radius:999px; border:1px solid var(--border); }
+  .pill.pass{ color:var(--green); border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.06); }
+  .pill.fail{ color:var(--red); border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.06); }
+  .dash-stats{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .dash-tests{ display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
+  .dash-test{
+    display:flex; justify-content:space-between; align-items:center; font-family:'JetBrains Mono', monospace;
+    font-size:11.5px; padding:9px 11px; border-radius:var(--radius-sm); background:var(--surface-2);
+  }
+  .dash-test.fail{ color:var(--red); }
+  .dash-test.pass{ color:var(--text-sub); }
+  .ai-card{ border:1px solid var(--border-glow); border-radius:var(--radius); padding:14px; background:rgba(34,225,225,0.05); }
+  .ai-card .ai-title{ font-size:12.5px; font-weight:600; color:var(--text); margin-bottom:7px; }
+  .ai-card p{ font-size:11.5px; color:var(--text-sub); line-height:1.55; margin-bottom:7px; }
+  .ai-meta{ display:flex; gap:14px; font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--text-muted); }
+  .ai-meta .impact-high{ color:var(--red); }
+
+  .intake-opt{
+    display:flex; align-items:center; gap:9px; padding:10px 12px; margin-bottom:7px; border-radius:var(--radius-sm);
+    background:var(--surface-2); border:1px solid transparent; font-family:'JetBrains Mono', monospace;
+    font-size:11px; color:var(--text-sub);
+  }
+  .intake-opt:last-child{ margin-bottom:0; }
+  .intake-opt.active{ border-color:var(--border-glow); color:var(--text); background:rgba(34,225,225,0.07); }
+  .intake-opt .dot{ width:6px; height:6px; border-radius:50%; background:var(--text-muted); flex-shrink:0; }
+  .intake-opt.active .dot{ background:var(--cyan); box-shadow:0 0 8px var(--cyan); }
+
+  .report-summary{ display:flex; flex-direction:column; margin-bottom:4px; }
+  .report-row{ display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:12.5px; color:var(--text-sub); }
+  .report-row:last-child{ border-bottom:none; }
+  .report-row strong{ color:var(--text); font-weight:600; font-family:'JetBrains Mono', monospace; font-size:12px; }
+
+  /* ---------- Stage-specific ---------- */
+  .stage-icon{
+    width:52px; height:52px; border-radius:var(--radius); border:1px solid var(--border-glow);
+    background:rgba(34,225,225,0.06); display:flex; align-items:center; justify-content:center;
+    color:var(--cyan); margin-bottom:20px;
+  }
+  .stage-icon svg{ width:26px; height:26px; }
+  .stage-num{
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-muted); letter-spacing:0.08em;
+    display:block; margin-bottom:10px;
+  }
+
+  .example-card{
+    margin-top:22px; padding:14px 16px; border-radius:var(--radius); border:1px dashed var(--border);
+    background:var(--surface-2);
+  }
+  .example-card .ex-label{
+    font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--purple); letter-spacing:0.08em;
+    display:block; margin-bottom:7px;
+  }
+  .example-card p{ font-size:12.5px; color:var(--text-sub); line-height:1.62; }
+
+  .before-after{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:20px; }
+  @media (max-width:640px){ .before-after{ grid-template-columns:1fr; } }
+  .ba-card{ border-radius:var(--radius); padding:16px 18px; border:1px solid var(--border); background:var(--surface); }
+  .ba-before{ border-left:3px solid var(--text-muted); }
+  .ba-after{ border-left:3px solid var(--cyan); background:rgba(34,225,225,0.045); }
+  .ba-label{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em; display:block; margin-bottom:9px; }
+  .ba-before .ba-label{ color:var(--text-muted); }
+  .ba-after .ba-label{ color:var(--cyan); }
+  .ba-card p{ font-size:12.5px; color:var(--text-sub); line-height:1.58; }
+
+  .stage-divider{ height:1px; background:var(--border); }
+
+  /* ---------- CTA ---------- */
+  .cta-section{ text-align:center; background:var(--bg); position:relative; overflow:hidden; }
+  .cta-section::before{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse 70% 60% at 50% 50%, rgba(34,225,225,0.1) 0%, transparent 65%);
+    pointer-events:none;
+  }
+  .cta-section .inner{ position:relative; z-index:2; }
+  .cta-section h2{ font-size:var(--display); font-weight:300; line-height:1.08; margin:20px 0 20px; }
+  .cta-section p{ font-size:17px; color:var(--text-sub); max-width:480px; margin:0 auto 36px; }
+
+  /* ---------- Footer ---------- */
+  footer{ background:#03060B; border-top:1px solid var(--border); padding:48px 0 32px; }
+  .footer-inner{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; }
+  .footer-back{ display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--text-muted); }
+  .footer-back a{ color:var(--cyan); }
+  .footer-meta{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-muted); }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="pulse.html" class="brand">
+      <svg class="brand-mark" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#22D3EE"/>
+            <stop offset="1" stop-color="#22E5E5"/>
+          </linearGradient>
+        </defs>
+        <circle cx="14" cy="8.3" r="4.4" fill="none" stroke="url(#logoGrad)" stroke-width="1.3"/>
+        <rect x="12.4" y="6.7" width="3.2" height="3.2" transform="rotate(45 14 8.3)" fill="url(#logoGrad)"/>
+        <rect x="13.4" y="12.7" width="1.2" height="11.4" rx="0.6" fill="url(#logoGrad)"/>
+        <rect x="12.4" y="13.8" width="3.2" height="1" rx="0.5" fill="url(#logoGrad)"/>
+      </svg>
+      <span class="brand-word">SHILOH</span>
+      <span class="brand-sub">LIFECYCLE</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#intake">Intake</a>
+      <a href="#generation">Generation</a>
+      <a href="#execution">Execution</a>
+      <a href="#analysis">Analysis</a>
+      <a href="#reports">Reports</a>
+      <a href="#ship-back">Ship Back</a>
+      <a href="pulse.html">← Pulse</a>
+      <a href="portal.html">Shiloh Team ↗</a>
+      <a href="index.html">Shiloh ↗</a>
+    </nav>
+    <a href="#contact" class="nav-cta" style="display:inline-block;">Get Started</a>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#intake">Intake</a>
+    <a href="#generation">Generation</a>
+    <a href="#execution">Execution</a>
+    <a href="#analysis">Analysis</a>
+    <a href="#reports">Reports</a>
+    <a href="#ship-back">Ship Back</a>
+    <a href="pulse.html">← Back to Pulse</a>
+    <a href="portal.html">Shiloh Team ↗</a>
+    <a href="index.html">Shiloh Destiny Industries ↗</a>
+    <a href="#contact" class="nav-cta">Get Started</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-scanlines"></div>
+    <canvas class="hero-scepter" id="heroScepter" aria-hidden="true"></canvas>
+    <div class="hero-content">
+      <span class="eyebrow mono">// THE LIFECYCLE, STAGE BY STAGE</span>
+      <h1 class="hero-headline">How a build actually moves through Pulse.</h1>
+      <p class="hero-sub">Six stages, one continuous line, no manual handoff between any of them. Below is what happens at each one — a generic example, and what changes versus doing it by hand.</p>
+      <div class="hero-ctas">
+        <a href="pulse.html" class="btn-secondary">← Back to Shiloh Pulse</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 01 INTAKE -->
+  <section id="intake">
+    <div class="container">
+      <div class="feature-row">
+        <div class="feature-copy reveal">
+          <span class="stage-num mono">STAGE 01 / 06</span>
+          <div class="stage-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 4v14"/>
+              <path d="M10 12l6 6 6-6"/>
+              <path d="M5 20v5a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-5"/>
+            </svg>
+          </div>
+          <span class="eyebrow mono">// INTAKE</span>
+          <h2>Whatever already exists is enough to start.</h2>
+          <p class="lede">A URL, an APK upload, an FRS document, or just screenshots. Pulse ingests what your team already has — there's no separate "write a test plan first" step before generation can begin.</p>
+          <ul class="feature-list">
+            <li><span class="bullet"></span> No prerequisite documentation — a build or a set of screenshots is a valid starting point</li>
+            <li><span class="bullet"></span> FRS documents (PDF / .docx) parsed and grounded automatically</li>
+            <li><span class="bullet"></span> Zero setup gate — submission moves straight into generation</li>
+          </ul>
+          <div class="example-card">
+            <span class="ex-label mono">// GENERIC EXAMPLE</span>
+            <p>Say your team just shipped a "forgot password" flow. There's no formal spec — just three Figma screenshots and a Slack thread. That's enough. Drop the screenshots in, and generation starts from what's actually there.</p>
+          </div>
+          <div class="before-after">
+            <div class="ba-card ba-before">
+              <span class="ba-label mono">BEFORE PULSE</span>
+              <p>Someone spends a day or two writing a formal test plan from a Figma file and a Slack thread before a single case exists.</p>
+            </div>
+            <div class="ba-card ba-after">
+              <span class="ba-label mono">WITH PULSE</span>
+              <p>Screenshots go in. Generation starts inside a minute — no test plan authored by hand first.</p>
+            </div>
+          </div>
+        </div>
+        <div class="feature-visual reveal">
+          <div class="mock-card">
+            <div class="mock-topbar"><span><span class="live-dot"></span>INTAKE</span><span>New submission</span></div>
+            <div class="intake-opt active"><span class="dot"></span>URL — app.example.com/reset-password</div>
+            <div class="intake-opt"><span class="dot"></span>FRS document (.pdf)</div>
+            <div class="intake-opt"><span class="dot"></span>Screenshots (3)</div>
+            <div class="intake-opt"><span class="dot"></span>APK upload</div>
+            <div class="gen-footer">→ Ready — Generation starts automatically</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="stage-divider"></div></div>
+
+  <!-- 02 AI GENERATION -->
+  <section id="generation" class="band">
+    <div class="container">
+      <div class="feature-row reverse">
+        <div class="feature-visual reveal">
+          <div class="mock-card">
+            <div class="mock-topbar"><span><span class="live-dot"></span>GENERATING</span><span>Source: 3 screenshots</span></div>
+            <div class="gen-tree">
+              <div class="gen-feature">Feature: Forgot Password</div>
+              <div class="gen-sub">Sub-feature: Reset via email link</div>
+              <div class="gen-case"><span>TC-01 · request_reset_valid_email</span><span class="gen-tag pos">POSITIVE</span></div>
+              <div class="gen-case"><span>TC-02 · request_reset_unregistered_email</span><span class="gen-tag neg">NEGATIVE</span></div>
+              <div class="gen-case"><span>TC-03 · reset_link_expired_after_24h</span><span class="gen-tag edge">EDGE</span></div>
+            </div>
+            <div class="gen-footer">→ 3 test cases identified · traced to screenshot 2 of 3</div>
+          </div>
+        </div>
+        <div class="feature-copy reveal">
+          <span class="stage-num mono">STAGE 02 / 06</span>
+          <div class="stage-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="16" cy="6" r="2.4"/>
+              <circle cx="8" cy="24" r="2.4"/>
+              <circle cx="16" cy="24" r="2.4"/>
+              <circle cx="24" cy="24" r="2.4"/>
+              <path d="M16 8.4v6"/>
+              <path d="M16 14.4l-8 7"/>
+              <path d="M16 14.4v7"/>
+              <path d="M16 14.4l8 7"/>
+            </svg>
+          </div>
+          <span class="eyebrow mono">// AI GENERATION</span>
+          <h2>Feature → sub-feature → typed test case, streamed live.</h2>
+          <p class="lede">Every case is classified Positive, Negative, or Edge at generation time, and carries a traceable source reference back to the exact material it came from. Real runnable code from day one — no separate "automation later" step.</p>
+          <ul class="feature-list">
+            <li><span class="bullet"></span> Multi-modal — screenshots alone are enough, no text required</li>
+            <li><span class="bullet"></span> Playwright for web, WebdriverIO/Appium for Android</li>
+            <li><span class="bullet"></span> Coverage bot answers "do we have a case for X?" grounded only in real cases</li>
+          </ul>
+          <div class="example-card">
+            <span class="ex-label mono">// GENERIC EXAMPLE</span>
+            <p>The forgot-password flow becomes: <strong style="color:var(--text);">Forgot Password → Reset via email link</strong>, then three typed cases — including an edge case for a reset link that's expired, which is easy to forget when writing tests from memory.</p>
+          </div>
+          <div class="before-after">
+            <div class="ba-card ba-before">
+              <span class="ba-label mono">BEFORE PULSE</span>
+              <p>A QA lead hand-writes twenty test cases from the spec, guessing at edge cases from memory and past incidents.</p>
+            </div>
+            <div class="ba-card ba-after">
+              <span class="ba-label mono">WITH PULSE</span>
+              <p>The hierarchy generates in minutes, streamed live, with edge cases like an expired reset link already covered.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="stage-divider"></div></div>
+
+  <!-- 03 EXECUTION -->
+  <section id="execution">
+    <div class="container">
+      <div class="feature-row">
+        <div class="feature-copy reveal">
+          <span class="stage-num mono">STAGE 03 / 06</span>
+          <div class="stage-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="16" cy="16" r="11"/>
+              <path d="M13 11.5l8 4.5-8 4.5v-9z" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <span class="eyebrow mono">// EXECUTION</span>
+          <h2>Manual when you need control. Automated when you need speed.</h2>
+          <p class="lede">Manual rounds get one-click Pass / Fail / Blocked with an expandable panel for notes and evidence. Automated cases dispatch to a Pulse Agent — a single standalone binary — with live results and live screenshots streamed back per test.</p>
+          <ul class="feature-list">
+            <li><span class="bullet"></span> Filter by status, case type, epic, or free-text search</li>
+            <li><span class="bullet"></span> Real-world blockers handled — a waitForOtp helper polls for codes via Twilio or Mac Messages</li>
+            <li><span class="bullet"></span> Quick Launch — open any URL on an agent machine for an instant eyeball check</li>
+          </ul>
+          <div class="example-card">
+            <span class="ex-label mono">// GENERIC EXAMPLE</span>
+            <p>Round 1 of the reset-password suite runs against the Android build via the Pulse Agent — cases that don't need a human execute unattended with evidence attached, while the tester runs the trickier manual cases (the ones needing a real inbox) on the dashboard.</p>
+          </div>
+          <div class="before-after">
+            <div class="ba-card ba-before">
+              <span class="ba-label mono">BEFORE PULSE</span>
+              <p>Manual regression day: a tester works through a spreadsheet, screenshotting failures by hand into a doc.</p>
+            </div>
+            <div class="ba-card ba-after">
+              <span class="ba-label mono">WITH PULSE</span>
+              <p>Automated cases run unattended with evidence attached automatically; manual cases stay one click per result.</p>
+            </div>
+          </div>
+        </div>
+        <div class="feature-visual reveal">
+          <div class="mock-card">
+            <div class="mock-topbar">
+              <span><span class="live-dot"></span>LIVE</span>
+              <span>Suite: Reset Password — R1</span>
+              <span>Agent: qa-agent-02</span>
+            </div>
+            <div class="dash-stats">
+              <span class="pill pass">18 PASSED ✓</span>
+              <span class="pill fail">1 FAILED ✗</span>
+            </div>
+            <div class="dash-tests">
+              <div class="dash-test pass"><span>✓ request_reset_valid_email</span><span>1.1s</span></div>
+              <div class="dash-test pass"><span>✓ reset_link_expired_after_24h</span><span>0.8s</span></div>
+              <div class="dash-test fail"><span>✗ request_reset_unregistered_email</span><span>FAILED</span></div>
+            </div>
+            <div class="gen-footer">→ Manual cases pending: 3 (needs a live inbox)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="stage-divider"></div></div>
+
+  <!-- 04 AI ANALYSIS -->
+  <section id="analysis" class="band">
+    <div class="container">
+      <div class="feature-row reverse">
+        <div class="feature-visual reveal">
+          <div class="mock-card">
+            <div class="mock-topbar"><span><span class="live-dot"></span>ANALYSING</span><span>Failure: request_reset_unregistered_email</span></div>
+            <div class="ai-card">
+              <div class="ai-title">◈ AI Root Cause</div>
+              <p>Unregistered-email path now returns a 500 instead of the expected generic "if this email exists" message — likely the email-service refactor merged this morning.</p>
+              <div class="ai-meta"><span>Confidence: 91%</span><span class="impact-high">Real Bug</span></div>
+            </div>
+            <div class="gen-footer">→ Linked to TC-02 · not seen on the last 6 runs</div>
+          </div>
+        </div>
+        <div class="feature-copy reveal">
+          <span class="stage-num mono">STAGE 04 / 06</span>
+          <div class="stage-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="13" cy="13" r="8"/>
+              <path d="M19 19l7 7"/>
+              <path d="M13 9.5v4"/>
+              <circle cx="13" cy="16.2" r="0.6" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <span class="eyebrow mono">// AI ANALYSIS</span>
+          <h2>Every failure classified before anyone opens the suite.</h2>
+          <p class="lede">Real bug, flaky, or environment — each failure is classified, linked to the exact case it breaks, and shipped with a probable cause and a confidence score, not left as an unexplained red row.</p>
+          <ul class="feature-list">
+            <li><span class="bullet"></span> Classification: real bug, flaky, environment, or bad test data</li>
+            <li><span class="bullet"></span> Probable cause, contributing factors, and a suggested fix</li>
+            <li><span class="bullet"></span> Grounded in the actual failing result — its stack trace and screenshot</li>
+          </ul>
+          <div class="example-card">
+            <span class="ex-label mono">// GENERIC EXAMPLE</span>
+            <p>TC-02 fails on this run. Before anyone opens the suite, Pulse has already flagged it: 91% confidence, "real bug," with a note that the failure started right after this morning's deploy touched the email service.</p>
+          </div>
+          <div class="before-after">
+            <div class="ba-card ba-before">
+              <span class="ba-label mono">BEFORE PULSE</span>
+              <p>A failure sits as a red cell in a spreadsheet until someone has time to dig into why it broke.</p>
+            </div>
+            <div class="ba-card ba-after">
+              <span class="ba-label mono">WITH PULSE</span>
+              <p>The failure ships with a probable cause and confidence score already attached — triage starts already narrowed down.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="stage-divider"></div></div>
+
+  <!-- 05 REPORTS OUT -->
+  <section id="reports">
+    <div class="container">
+      <div class="feature-row">
+        <div class="feature-copy reveal">
+          <span class="stage-num mono">STAGE 05 / 06</span>
+          <div class="stage-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 4h12l6 6v18a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/>
+              <path d="M20 4v6h6"/>
+              <path d="M11 24v-5"/>
+              <path d="M16 24v-8"/>
+              <path d="M21 24v-3"/>
+            </svg>
+          </div>
+          <span class="eyebrow mono">// REPORTS OUT</span>
+          <h2>Reporting is generated, not written.</h2>
+          <p class="lede">An executive summary, a PDF, a CSV — assembled the moment a run finishes, not compiled by hand afterward. Confidence comes from a system that can't flatter itself: coverage insights narrate deterministically computed numbers.</p>
+          <ul class="feature-list">
+            <li><span class="bullet"></span> Plain-English summary, key risks, and trend versus the prior run</li>
+            <li><span class="bullet"></span> CSV export and a formatted PDF for manual rounds</li>
+            <li><span class="bullet"></span> Coverage dashboard — a suite that only tests happy paths is immediately obvious</li>
+          </ul>
+          <div class="example-card">
+            <span class="ex-label mono">// GENERIC EXAMPLE</span>
+            <p>By the time the sign-off call starts, there's already a one-page summary: 18 passed, 1 failed and classified, trend versus last Tuesday's run — exportable to PDF for whoever isn't opening the dashboard.</p>
+          </div>
+          <div class="before-after">
+            <div class="ba-card ba-before">
+              <span class="ba-label mono">BEFORE PULSE</span>
+              <p>Someone stays late the night before a release, compiling results from three separate tools into a slide.</p>
+            </div>
+            <div class="ba-card ba-after">
+              <span class="ba-label mono">WITH PULSE</span>
+              <p>The report exists the moment the run finishes — nobody assembles it by hand.</p>
+            </div>
+          </div>
+        </div>
+        <div class="feature-visual reveal">
+          <div class="mock-card">
+            <div class="mock-topbar"><span><span class="live-dot"></span>REPORT</span><span>Run #482 · Reset Password</span></div>
+            <div class="report-summary">
+              <div class="report-row"><span>Pass rate</span><strong style="color:var(--green);">94.7%</strong></div>
+              <div class="report-row"><span>Failures classified</span><strong>1 Real Bug</strong></div>
+              <div class="report-row"><span>Trend vs last run</span><strong style="color:var(--green);">▲ +2.1%</strong></div>
+            </div>
+            <div class="gen-footer">→ Executive PDF generated · sent to 4 recipients</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="stage-divider"></div></div>
+
+  <!-- 06 SHIP BACK -->
+  <section id="ship-back" class="band">
+    <div class="container">
+      <div class="feature-row reverse">
+        <div class="feature-visual reveal">
+          <div class="mock-card">
+            <div class="mock-topbar"><span><span class="live-dot"></span>SHIP BACK</span><span>Reset Password · v2.4.1</span></div>
+            <div class="report-summary">
+              <div class="report-row"><span>Automated coverage</span><strong>19 / 19 green</strong></div>
+              <div class="report-row"><span>Manual sign-off</span><strong>3 / 3 approved</strong></div>
+              <div class="report-row"><span>Known issues</span><strong style="color:var(--amber);">1 flaky (tracked)</strong></div>
+            </div>
+            <div class="gen-footer">→ Ready for the sign-off call</div>
+          </div>
+        </div>
+        <div class="feature-copy reveal">
+          <span class="stage-num mono">STAGE 06 / 06</span>
+          <div class="stage-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 11l12-6 12 6-12 6-12-6z"/>
+              <path d="M4 11v11l12 6 12-6V11"/>
+              <path d="M16 17v11"/>
+              <path d="M11.5 21l3 2.6 5.5-6.2"/>
+            </svg>
+          </div>
+          <span class="eyebrow mono">// SHIP BACK</span>
+          <h2>With coverage proof and a prioritised risk list — ready for the sign-off call.</h2>
+          <p class="lede">The build goes back with evidence attached, not a verbal "looks fine." Coverage proof, an evidence trail, and a prioritised risk list mean the sign-off call starts from facts, not from memory.</p>
+          <ul class="feature-list">
+            <li><span class="bullet"></span> Coverage proof — gaps are surfaced, not hidden</li>
+            <li><span class="bullet"></span> Every defect carries a screenshot or recording</li>
+            <li><span class="bullet"></span> Known issues tracked separately from real blockers</li>
+          </ul>
+          <div class="example-card">
+            <span class="ex-label mono">// GENERIC EXAMPLE</span>
+            <p>The release note for forgot-password ships with: 19/19 automated cases green, 3 manual cases signed off, one known issue tracked separately as flaky rather than real — and a coverage screenshot proving edge cases weren't skipped.</p>
+          </div>
+          <div class="before-after">
+            <div class="ba-card ba-before">
+              <span class="ba-label mono">BEFORE PULSE</span>
+              <p>"Are we good to ship?" gets answered with a gut feeling and a half-remembered test run.</p>
+            </div>
+            <div class="ba-card ba-after">
+              <span class="ba-label mono">WITH PULSE</span>
+              <p>"Are we good to ship?" gets answered with a number, a list, and evidence attached to each line.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="contact" class="cta-section">
+    <div class="container inner reveal">
+      <span class="eyebrow mono">// START HERE</span>
+      <h2>Ship your first build.</h2>
+      <p>Point Pulse at a URL, upload an APK, or drop in an FRS document. Watch the test hierarchy build itself.</p>
+      <a href="mailto:pulse@shilohgroup.co.za" class="btn-primary">Get Started →</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-back">
+      <span>Part of</span>
+      <a href="pulse.html">Shiloh Pulse →</a>
+    </div>
+    <div class="footer-meta">© 2026 SHILOH PULSE · THE LIFECYCLE</div>
+  </div>
+</footer>
+
+<script>
+  // Mobile menu toggle
+  (function(){
+    const btn = document.getElementById('hamburgerBtn');
+    const menu = document.getElementById('mobileMenu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function(){
+      btn.classList.toggle('open');
+      menu.classList.toggle('open');
+    });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        btn.classList.remove('open');
+        menu.classList.remove('open');
+      });
+    });
+  })();
+
+  // Scroll reveal
+  (function(){
+    const observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting){
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(function(el){ observer.observe(el); });
+  })();
+
+  // Hero 3D scepter — the Shiloh mark rotating in true wireframe depth
+  (function(){
+    const canvas = document.getElementById('heroScepter');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let W = 0, H = 0;
+    function resize(){
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = rect.width; H = rect.height;
+      if (W === 0 || H === 0) return;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const edges = [];
+    function edge(a, b){ edges.push([a[0],a[1],a[2],b[0],b[1],b[2]]); }
+    function octahedron(ox, oy, oz, s){
+      const v = [[s,0,0],[-s,0,0],[0,s,0],[0,-s,0],[0,0,s],[0,0,-s]]
+        .map(function(p){ return [ox+p[0], oy+p[1], oz+p[2]]; });
+      [[0,2],[0,3],[0,4],[0,5],[1,2],[1,3],[1,4],[1,5],[2,4],[2,5],[3,4],[3,5]]
+        .forEach(function(e){ edge(v[e[0]], v[e[1]]); });
+    }
+
+    const RING_R = 0.34, RING_Y = 0.55, RIM_Z = 0.05, SEG = 40;
+    [-RIM_Z, RIM_Z].forEach(function(z){
+      for (let i = 0; i < SEG; i++){
+        const a1 = (i / SEG) * Math.PI * 2, a2 = ((i + 1) / SEG) * Math.PI * 2;
+        edge([RING_R*Math.cos(a1), RING_Y + RING_R*Math.sin(a1), z],
+             [RING_R*Math.cos(a2), RING_Y + RING_R*Math.sin(a2), z]);
+      }
+    });
+    for (let i = 0; i < SEG; i += 5){
+      const a = (i / SEG) * Math.PI * 2;
+      edge([RING_R*Math.cos(a), RING_Y + RING_R*Math.sin(a), -RIM_Z],
+           [RING_R*Math.cos(a), RING_Y + RING_R*Math.sin(a), RIM_Z]);
+    }
+    octahedron(0, RING_Y, 0, 0.16);
+    const SW = 0.038, TOP = RING_Y - RING_R, BOT = -0.72;
+    const sq = [[SW,SW],[SW,-SW],[-SW,-SW],[-SW,SW]];
+    sq.forEach(function(p, i){
+      const q = sq[(i+1)%4];
+      edge([p[0], TOP, p[1]], [p[0], BOT, p[1]]);
+      edge([p[0], TOP, p[1]], [q[0], TOP, q[1]]);
+      edge([p[0], BOT, p[1]], [q[0], BOT, q[1]]);
+    });
+    [0.10, 0.045].forEach(function(cy0){
+      const CR = 0.105, CSEG = 24;
+      for (let i = 0; i < CSEG; i++){
+        const a1 = (i / CSEG) * Math.PI * 2, a2 = ((i + 1) / CSEG) * Math.PI * 2;
+        edge([CR*Math.cos(a1), cy0, CR*Math.sin(a1)],
+             [CR*Math.cos(a2), cy0, CR*Math.sin(a2)]);
+      }
+    });
+    octahedron(0, -0.80, 0, 0.075);
+
+    const tilt = 0.16;
+    const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+    let yaw = 0.6;
+
+    function draw(){
+      if (W === 0 || H === 0){ resize(); }
+      ctx.clearRect(0, 0, W, H);
+      const cx = W * 0.5, cy = H * 0.5;
+      const unit = Math.min(W * 1.15, H * 0.52);
+      const focal = 3.2;
+      const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+
+      for (let i = 0; i < edges.length; i++){
+        const e = edges[i];
+        const xa = e[0]*cosY + e[2]*sinY, za = -e[0]*sinY + e[2]*cosY;
+        const ya = e[1]*cosT - za*sinT, zza = e[1]*sinT + za*cosT;
+        const sa = focal / (focal + zza);
+        const xb = e[3]*cosY + e[5]*sinY, zb = -e[3]*sinY + e[5]*cosY;
+        const yb = e[4]*cosT - zb*sinT, zzb = e[4]*sinT + zb*cosT;
+        const sb = focal / (focal + zzb);
+
+        const t = Math.max(0, Math.min(1, 0.5 - (zza + zzb) * 0.9));
+        const r = (22 + 38*t)|0, g = (130 + 105*t)|0, b = (170 + 65*t)|0;
+        ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (0.07 + t*0.30).toFixed(3) + ')';
+        ctx.lineWidth = 1 + t * 0.6;
+        ctx.beginPath();
+        ctx.moveTo(cx + xa*unit*sa, cy - ya*unit*sa);
+        ctx.lineTo(cx + xb*unit*sb, cy - yb*unit*sb);
+        ctx.stroke();
+      }
+    }
+
+    function tick(){
+      yaw += 0.0035;
+      draw();
+      requestAnimationFrame(tick);
+    }
+
+    if (reduceMotion){ draw(); } else { requestAnimationFrame(tick); }
+  })();
+</script>
+
+</body>
+</html>

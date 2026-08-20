@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shiloh Pulse — Ship a build. Get back evidence.</title>
+<meta name="description" content="Shiloh Pulse — the QA intelligence product from Shiloh Test, Shiloh Destiny Industries' QA factory. Ship a URL, an APK, an FRS document, or just screenshots. AI drafts the test cases, runs them, and reports back.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='28' y2='28' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%2322D3EE'/%3E%3Cstop offset='1' stop-color='%2322E5E5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='14' cy='8.3' r='4.4' fill='none' stroke='url(%23g)' stroke-width='1.3'/%3E%3Crect x='12.4' y='6.7' width='3.2' height='3.2' transform='rotate(45 14 8.3)' fill='url(%23g)'/%3E%3Crect x='13.4' y='12.7' width='1.2' height='11.4' rx='0.6' fill='url(%23g)'/%3E%3Crect x='12.4' y='13.8' width='3.2' height='1' rx='0.5' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050A12;
+    --surface:#0A121D;
+    --surface-2:#0F1A28;
+    --border:#1C2B3A;
+    --border-glow:rgba(34,225,225,0.35);
+
+    --blue:#22D3EE;
+    --blue-light:#1D4ED8;
+    --cyan:#22E5E5;
+    --purple:#8B5CF6;
+    --green:#10B981;
+    --red:#EF4444;
+    --amber:#F59E0B;
+
+    --text:#F1FAFC;
+    --text-sub:#9FB4C4;
+    --text-muted:#5C7488;
+
+    --display: clamp(44px, 6.5vw, 84px);
+    --h1: clamp(32px, 4.6vw, 56px);
+    --h2: clamp(22px, 2.8vw, 36px);
+    --radius-sm:6px; --radius:10px; --radius-lg:16px; --radius-xl:24px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:400;
+    line-height:1.5;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+  button{ font-family:inherit; cursor:pointer; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  .container{ max-width:1200px; margin:0 auto; padding:0 32px; }
+  @media (max-width:640px){ .container{ padding:0 20px; } }
+
+  .reveal{ opacity:0; transform:translateY(24px); transition:opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible{ opacity:1; transform:translateY(0); }
+  .reveal-stagger .reveal:nth-child(1){ transition-delay:0ms; }
+  .reveal-stagger .reveal:nth-child(2){ transition-delay:80ms; }
+  .reveal-stagger .reveal:nth-child(3){ transition-delay:160ms; }
+  .reveal-stagger .reveal:nth-child(4){ transition-delay:240ms; }
+  .reveal-stagger .reveal:nth-child(5){ transition-delay:320ms; }
+  .reveal-stagger .reveal:nth-child(6){ transition-delay:400ms; }
+  .reveal-stagger .reveal:nth-child(7){ transition-delay:480ms; }
+
+  /* ---------- Nav ---------- */
+  header.nav{
+    position:fixed; top:0; left:0; right:0; height:64px; z-index:1000;
+    background:rgba(5,10,18,0.75);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-inner{
+    max-width:1200px; margin:0 auto; height:64px; padding:0 32px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{ width:18px; height:18px; flex-shrink:0; }
+  .brand-word{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:15px;
+    letter-spacing:0.15em; color:var(--text);
+  }
+  .brand-sub{
+    font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--cyan);
+    letter-spacing:0.1em; margin-left:2px; padding-left:10px; border-left:1px solid var(--border);
+  }
+  .nav-links{ display:flex; align-items:center; gap:32px; }
+  .nav-links a{
+    font-size:13px; font-weight:500; color:var(--text-muted); transition:color 0.2s ease;
+  }
+  .nav-links a:hover{ color:var(--text); }
+  .nav-cta{
+    border:1px solid var(--border-glow); background:transparent; color:var(--blue-light);
+    padding:8px 20px; border-radius:6px; font-size:13px; font-weight:500;
+    transition:background 0.2s ease; white-space:nowrap;
+  }
+  .nav-cta:hover{ background:rgba(34,225,225,0.12); }
+  .hamburger{
+    display:none; flex-direction:column; gap:5px; background:none; border:none; padding:8px;
+  }
+  .hamburger span{ width:22px; height:2px; background:var(--text); transition:transform 0.3s ease, opacity 0.3s ease; }
+  .hamburger.open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2){ opacity:0; }
+  .hamburger.open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+  .mobile-menu{
+    position:fixed; top:64px; left:0; right:0; background:var(--surface);
+    border-bottom:1px solid var(--border); display:flex; flex-direction:column;
+    padding:16px 20px 24px; gap:4px; transform:translateY(-120%); transition:transform 0.35s ease; z-index:999;
+  }
+  .mobile-menu.open{ transform:translateY(0); }
+  .mobile-menu a{ padding:14px 4px; font-size:15px; color:var(--text-sub); border-bottom:1px solid var(--border); }
+  .mobile-menu .nav-cta{ margin-top:12px; text-align:center; }
+  @media (max-width:940px){ .nav-links{ display:none; } .hamburger{ display:flex; } }
+  @media (min-width:941px){ .mobile-menu{ display:none; } }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative; min-height:96vh; display:flex; align-items:center; justify-content:center;
+    background:var(--bg); overflow:hidden; padding-top:140px; padding-bottom:60px;
+  }
+  .hero::before{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse 80% 55% at 50% 0%, rgba(34,225,225,0.14) 0%, transparent 60%);
+    pointer-events:none;
+  }
+  .hero-scanlines{
+    position:absolute; inset:0;
+    background:repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px);
+    pointer-events:none;
+  }
+  .hero-scepter{
+    position:absolute; top:50%; right:-4%; transform:translateY(-50%);
+    width:min(44vw, 540px); height:min(78vh, 640px);
+    pointer-events:none;
+  }
+  @media (max-width:900px){ .hero-scepter{ opacity:0.45; right:-26%; } }
+  .hero-content{ position:relative; z-index:2; max-width:760px; margin:0 auto; padding:0 32px; text-align:center; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--cyan);
+    letter-spacing:0.2em; text-transform:uppercase; margin-bottom:24px; display:block;
+  }
+  .hero-headline{
+    font-family:'Space Grotesk', sans-serif; font-size:var(--display); font-weight:300; line-height:1.05; color:var(--text);
+  }
+  .hero-sub{
+    font-family:'Space Grotesk', sans-serif; font-size:19px; font-weight:400; color:var(--text-sub);
+    max-width:600px; margin:24px auto 0;
+  }
+  .hero-ctas{ margin-top:44px; display:flex; align-items:center; justify-content:center; gap:28px; flex-wrap:wrap; }
+  .btn-primary{
+    display:inline-flex; align-items:center; gap:8px; padding:14px 28px; font-size:16px; font-weight:600;
+    color:#04141A; border-radius:8px; border:1px solid var(--cyan); background:var(--cyan);
+    transition:box-shadow 0.3s ease, transform 0.2s ease;
+  }
+  .btn-primary:hover{ box-shadow:0 0 40px rgba(34,225,225,0.3), 0 0 80px rgba(34,225,225,0.15); transform:translateY(-1px); }
+  .btn-secondary{
+    display:inline-flex; align-items:center; gap:6px; color:var(--cyan); font-size:15px; font-weight:500;
+    border-bottom:1px solid transparent; transition:border-color 0.2s ease;
+  }
+  .btn-secondary:hover{ border-color:var(--cyan); }
+  .hero-stats{
+    margin-top:64px; display:flex; align-items:center; justify-content:center; gap:24px; flex-wrap:wrap;
+  }
+  .hero-stats .stat{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--text-muted); }
+  .hero-stats .divider{ width:1px; height:14px; background:var(--border); }
+
+  .pipeline-stage{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--text-muted); transition:color 0.3s ease, text-shadow 0.3s ease;
+  }
+  .pipeline-stage.is-active{ color:var(--cyan); text-shadow:0 0 10px rgba(34,225,225,0.55); }
+  .pipeline-stage:nth-child(2){ text-align:center; }
+  .pipeline-stage:nth-child(3){ text-align:right; }
+
+  .pipeline3-wrap{ position:relative; z-index:2; }
+  .pipeline3-canvas-wrap{ max-width:900px; margin:0 auto; }
+  #pipeline3Canvas{ width:100%; height:260px; display:block; }
+  .pipeline3-stages{
+    display:flex; justify-content:space-between; max-width:900px; margin:14px auto 0; padding:0 4px;
+  }
+
+  /* ---------- Phone mockup ---------- */
+  .phone-frame{
+    width:250px; margin:0 auto; aspect-ratio:9 / 19.5; background:#020407; border:2px solid #16222E;
+    border-radius:42px; padding:9px; position:relative;
+    box-shadow:0 0 50px rgba(34,225,225,0.15), 0 0 100px rgba(34,225,225,0.07), inset 0 0 0 1px rgba(255,255,255,0.04);
+    animation:phoneFloat 5s ease-in-out infinite;
+  }
+  @keyframes phoneFloat{ 0%, 100%{ transform:translateY(0); } 50%{ transform:translateY(-9px); } }
+  @media (prefers-reduced-motion: reduce){ .phone-frame{ animation:none; } }
+  .phone-btn{ position:absolute; background:#0A1520; border:1px solid #1C2B3A; }
+  .phone-btn-power{ right:-3px; top:118px; width:3px; height:56px; border-radius:0 2px 2px 0; }
+  .phone-btn-vol1{ left:-3px; top:92px; width:3px; height:26px; border-radius:2px 0 0 2px; }
+  .phone-btn-vol2{ left:-3px; top:128px; width:3px; height:26px; border-radius:2px 0 0 2px; }
+  .phone-notch{
+    position:absolute; top:9px; left:50%; transform:translateX(-50%); width:84px; height:22px;
+    background:#020407; border-radius:12px; z-index:3; display:flex; align-items:center; justify-content:flex-end; padding-right:8px;
+  }
+  .phone-notch::after{ content:''; width:6px; height:6px; border-radius:50%; background:#0E2A32; box-shadow:inset 0 0 0 1px rgba(120,220,220,0.15); }
+  .phone-screen{
+    position:relative; height:100%; padding-top:34px; display:flex; flex-direction:column;
+    border-radius:34px; overflow:hidden;
+    background:radial-gradient(circle at 28% 12%, rgba(34,225,225,0.20), transparent 55%),
+      radial-gradient(circle at 85% 92%, rgba(139,92,246,0.14), transparent 50%),
+      linear-gradient(180deg, #0C1520 0%, #05090F 100%);
+  }
+  .phone-time{
+    text-align:center; font-family:'Space Grotesk', sans-serif; font-weight:300; font-size:32px; color:var(--text);
+    line-height:1; margin-bottom:6px; text-shadow:0 0 24px rgba(34,225,225,0.35);
+  }
+  .phone-date{
+    text-align:center; font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--text-muted); margin-bottom:18px;
+  }
+  .phone-notifs{ display:flex; flex-direction:column; gap:9px; padding:0 8px 10px; }
+  .phone-notif{
+    position:relative; background:rgba(20,32,46,0.62); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:10px 12px;
+    box-shadow:0 12px 24px rgba(0,0,0,0.4), inset 3px 0 0 var(--notif-accent, var(--cyan));
+    opacity:0; transform:translateY(14px) scale(0.94);
+    transition:opacity 0.5s cubic-bezier(.22,.9,.32,1.2), transform 0.5s cubic-bezier(.22,.9,.32,1.2);
+  }
+  .phone-notif.is-in{ opacity:1; transform:translateY(0) scale(1); }
+  .phone-notif-unread{
+    position:absolute; top:10px; right:11px; width:6px; height:6px; border-radius:50%;
+    background:var(--notif-accent, var(--cyan)); box-shadow:0 0 8px var(--notif-accent, var(--cyan));
+  }
+  .phone-notif-head{ display:flex; align-items:center; gap:7px; margin-bottom:6px; }
+  .phone-notif-icon{
+    width:18px; height:18px; flex-shrink:0; border-radius:5px; background:linear-gradient(135deg, var(--blue), var(--cyan));
+    display:flex; align-items:center; justify-content:center;
+  }
+  .phone-notif-icon::before{ content:''; width:6.5px; height:6.5px; background:#04141A; transform:rotate(45deg); }
+  .phone-notif-app{ flex:1; font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:0.07em; text-transform:uppercase; color:var(--text-muted); }
+  .phone-notif-time{ font-family:'JetBrains Mono', monospace; font-size:9px; color:var(--text-muted); }
+  .phone-notif-title{ font-size:11px; font-weight:600; color:var(--text); margin-bottom:3px; line-height:1.3; }
+  .phone-notif-body{ font-size:10px; color:var(--text-sub); line-height:1.45; }
+  .platform-badges{ display:flex; gap:10px; justify-content:center; margin-top:28px; }
+  .platform-badge{
+    display:flex; align-items:center; gap:7px; border:1px solid var(--border); border-radius:999px; padding:7px 16px;
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-sub);
+  }
+  .platform-badge .dot{ width:6px; height:6px; border-radius:50%; background:var(--green); }
+
+  /* ---------- App tour (in-app screen carousel) ---------- */
+  .phone-screen-app{ padding:20px 12px 14px; overflow:hidden; }
+  .pui-slide{ display:none; flex-direction:column; height:100%; }
+  .pui-slide.is-active{ display:flex; }
+  .pui-header{ margin-bottom:9px; }
+  .pui-title{ font-size:16px; font-weight:600; color:var(--text); line-height:1.15; }
+  .pui-sub{ font-family:'JetBrains Mono', monospace; font-size:8.5px; color:var(--text-muted); margin-top:2px; }
+
+  .pui-banner{ background:rgba(239,68,68,0.14); border:1px solid rgba(239,68,68,0.35); border-radius:10px; padding:8px 9px; margin-bottom:8px; }
+  .pui-banner-title{ font-size:10px; font-weight:600; color:#FCA5A5; margin-bottom:3px; line-height:1.3; }
+  .pui-banner p{ font-size:8.5px; color:rgba(252,165,165,0.85); line-height:1.4; margin:0; }
+
+  .pui-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:9px 10px; margin-bottom:7px; }
+  .pui-card-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .pui-metric-label{ font-family:'JetBrains Mono', monospace; font-size:7.5px; letter-spacing:0.06em; color:var(--text-muted); text-transform:uppercase; }
+  .pui-metric-num{ font-size:21px; font-weight:700; color:var(--text); line-height:1.15; margin-top:2px; }
+  .pui-metric-sub{ font-size:8px; color:var(--text-sub); margin-top:2px; }
+  .pui-metric-sub.mono{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--text); }
+
+  .pui-donut{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .pui-donut-hole{ width:27px; height:27px; border-radius:50%; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:7.5px; font-weight:700; color:var(--text); }
+
+  .pui-mini-grid{ display:flex; gap:7px; }
+  .pui-mini-grid .pui-card{ flex:1; margin-bottom:0; }
+  .pui-mini-label{ font-family:'JetBrains Mono', monospace; font-size:7px; letter-spacing:0.05em; color:var(--text-muted); text-transform:uppercase; margin-bottom:3px; }
+  .pui-mini-num{ font-size:15px; font-weight:700; color:var(--text); }
+  .pui-mini-sub{ font-size:7px; color:var(--text-muted); margin-top:1px; }
+
+  .pui-pills{ display:flex; gap:5px; margin-bottom:8px; flex-wrap:wrap; }
+  .pui-pill{ font-family:'JetBrains Mono', monospace; font-size:7.5px; padding:3px 7px; border-radius:999px; border:1px solid var(--border); color:var(--text-muted); }
+  .pui-pill.on{ color:var(--cyan); border-color:var(--border-glow); background:rgba(34,225,225,0.08); }
+
+  .pui-rows{ display:flex; flex-direction:column; gap:5px; overflow:hidden; flex:1; }
+  .pui-row{ display:flex; align-items:center; gap:7px; background:var(--surface-2); border-radius:8px; padding:7px 8px; }
+  .pui-row-icon{ width:15px; height:15px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:8px; }
+  .pui-row-icon.pass{ background:rgba(16,185,129,0.15); color:var(--green); }
+  .pui-row-icon.fail{ background:rgba(239,68,68,0.15); color:var(--red); }
+  .pui-row-icon.pending{ background:rgba(159,180,196,0.15); color:var(--text-muted); }
+  .pui-row-icon.warn{ background:rgba(245,158,11,0.15); color:var(--amber); }
+  .pui-row-main{ flex:1; min-width:0; }
+  .pui-row-title{ font-size:9.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pui-row-sub{ font-family:'JetBrains Mono', monospace; font-size:7px; color:var(--text-muted); margin-top:1px; display:block; }
+  .pui-row-stat{ font-family:'JetBrains Mono', monospace; font-size:8px; color:var(--text-sub); flex-shrink:0; text-align:right; white-space:nowrap; }
+
+  .pui-sev{ font-family:'JetBrains Mono', monospace; font-size:6.5px; padding:2px 6px; border-radius:999px; flex-shrink:0; }
+  .pui-sev.critical{ color:#FCA5A5; background:rgba(239,68,68,0.15); }
+  .pui-sev.high{ color:var(--amber); background:rgba(245,158,11,0.15); }
+  .pui-sev.medium{ color:#C4B5FD; background:rgba(139,92,246,0.15); }
+
+  .pui-ai-card{ border:1px solid var(--border-glow); border-radius:10px; padding:9px 10px; background:rgba(34,225,225,0.05); flex:1; overflow:hidden; }
+  .pui-ai-title{ font-size:9.5px; font-weight:600; color:var(--text); margin-bottom:6px; }
+  .pui-ai-label{ font-family:'JetBrains Mono', monospace; font-size:6.5px; letter-spacing:0.05em; color:var(--text-muted); text-transform:uppercase; margin-top:6px; margin-bottom:2px; }
+  .pui-ai-label:first-of-type{ margin-top:0; }
+  .pui-ai-card p{ font-size:8.5px; color:var(--text-sub); line-height:1.4; margin:0; }
+
+  .pui-stop-btn{ display:block; width:100%; text-align:center; font-size:9.5px; font-weight:600; color:var(--red); border:1px solid rgba(239,68,68,0.4); border-radius:8px; padding:6px 0; margin-bottom:8px; }
+
+  .pui-report-card{ border:1px solid var(--border-glow); border-radius:10px; padding:10px; background:rgba(34,225,225,0.05); }
+  .pui-report-label{ font-family:'JetBrains Mono', monospace; font-size:6.5px; letter-spacing:0.05em; color:var(--cyan); text-transform:uppercase; margin-bottom:4px; }
+  .pui-report-title{ font-size:10.5px; font-weight:600; color:var(--text); line-height:1.25; margin-bottom:3px; }
+  .pui-report-meta{ font-family:'JetBrains Mono', monospace; font-size:7px; color:var(--text-muted); }
+  .pui-report-desc{ font-size:8px; color:var(--text-sub); line-height:1.4; margin:8px 0; }
+  .pui-report-btns{ display:flex; gap:6px; }
+  .pui-report-btn{ flex:1; text-align:center; font-size:8.5px; font-weight:600; padding:6px 0; border-radius:7px; }
+  .pui-report-btn.read{ background:var(--surface-2); color:var(--text-sub); border:1px solid var(--border); }
+  .pui-report-btn.share{ background:linear-gradient(135deg, var(--blue), var(--purple)); color:#fff; }
+
+  .phone-pager{ display:flex; justify-content:center; gap:6px; margin-top:16px; }
+  .phone-pager button{ width:6px; height:6px; border-radius:50%; background:var(--border); border:none; padding:0; cursor:pointer; transition:background 0.3s ease, width 0.3s ease; }
+  .phone-pager button:hover{ background:var(--text-muted); }
+  .phone-pager button.active{ background:var(--cyan); width:18px; border-radius:3px; }
+  .phone-caption{ text-align:center; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--cyan); margin-top:14px; }
+
+  .pui-row.pill{ border-radius:18px; }
+  .pui-chip{ font-family:'JetBrains Mono', monospace; font-size:7.5px; padding:2px 7px; border-radius:999px; border:1px solid var(--border); color:var(--text-muted); }
+
+  .pui-list-item{ display:flex; align-items:center; gap:9px; background:var(--surface-2); border-radius:14px; padding:8px 9px; margin-bottom:6px; }
+  .pui-ring{ width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .pui-ring-hole{ width:23px; height:23px; border-radius:50%; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:var(--text); }
+  .pui-list-name{ font-size:10px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:4px; }
+  .pui-list-meta{ font-family:'JetBrains Mono', monospace; font-size:7px; color:var(--text-muted); margin-top:1px; display:flex; align-items:center; }
+  .pui-chevron{ color:var(--text-muted); font-size:13px; flex-shrink:0; }
+  .pui-star{ color:var(--cyan); font-size:8px; }
+  .pui-dot-status{ width:5px; height:5px; border-radius:50%; display:inline-block; margin-right:4px; flex-shrink:0; }
+  .pui-dot-status.on{ background:var(--green); }
+  .pui-dot-status.off{ background:var(--red); }
+
+  .pui-mono-block{ font-family:'JetBrains Mono', monospace; font-size:7.5px; color:var(--red); line-height:1.6; background:var(--surface-2); border-radius:8px; padding:8px 9px; }
+  .pui-shot-box{ background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:9px; flex:1; }
+  .pui-shot-line{ height:8px; border-radius:4px; background:rgba(159,180,196,0.15); margin-bottom:6px; }
+  .pui-shot-line.short{ width:55%; }
+
+  .pui-evidence-grid{ display:flex; gap:6px; }
+  .pui-evidence-box{ flex:1; aspect-ratio:1.3; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; }
+
+  .pui-steps{ display:flex; flex-direction:column; gap:6px; }
+  .pui-step{ display:flex; gap:7px; font-size:8.5px; color:var(--text-sub); line-height:1.4; }
+  .pui-step-num{ font-family:'JetBrains Mono', monospace; font-size:8px; color:var(--text-muted); flex-shrink:0; width:12px; }
+
+  .pui-diff-card{ border-radius:10px; padding:8px 9px; margin-bottom:7px; }
+  .pui-diff-card.before{ background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); }
+  .pui-diff-card.after{ background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); }
+  .pui-diff-label{ font-family:'JetBrains Mono', monospace; font-size:7px; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:5px; }
+  .pui-diff-label.before{ color:#FCA5A5; }
+  .pui-diff-label.after{ color:#6EE7B7; }
+  .pui-code-block{ font-family:'JetBrains Mono', monospace; font-size:7px; line-height:1.7; background:var(--surface-2); border-radius:8px; padding:7px 8px; overflow:hidden; }
+  .pui-code-line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pui-code-line.rm{ color:#FCA5A5; }
+  .pui-code-line.add{ color:#6EE7B7; }
+
+  .pui-run-spin{ display:inline-block; animation:puiSpin 1.2s linear infinite; }
+  @keyframes puiSpin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){ .pui-run-spin{ animation:none; } }
+
+  /* ---------- Sections ---------- */
+  section{ position:relative; padding:112px 0; }
+  @media (max-width:640px){ section{ padding:64px 0; } }
+  .section-header{ max-width:680px; margin:0 auto 56px; text-align:center; }
+  .section-header .eyebrow{ text-align:center; }
+  .section-header h2{ font-size:var(--h1); font-weight:300; line-height:1.1; color:var(--text); text-wrap:balance; }
+  .section-header p{ font-size:16.5px; color:var(--text-sub); margin-top:18px; line-height:1.65; }
+
+  .band{ background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+
+  /* ---------- Pain map ---------- */
+  .grid-3{ display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; }
+  @media (max-width:1024px){ .grid-3{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:640px){ .grid-3{ grid-template-columns:1fr; } }
+  .pain-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:24px; transition:border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .pain-card:hover{ border-color:var(--border-glow); box-shadow:0 0 24px rgba(34,225,225,0.1); transform:translateY(-2px); }
+  .pain-card .num{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-muted); display:block; margin-bottom:12px; }
+  .pain-card h3{ font-size:15.5px; font-weight:600; color:var(--text); margin-bottom:8px; line-height:1.35; }
+  .pain-card .answer{
+    display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono', monospace; font-size:10.5px;
+    color:var(--cyan); letter-spacing:0.03em; margin-bottom:10px;
+  }
+  .pain-card .answer .diamond{ width:6px; height:6px; background:var(--cyan); transform:rotate(45deg); flex-shrink:0; }
+  .pain-card p{ font-size:13px; color:var(--text-sub); line-height:1.6; }
+
+  /* ---------- Feature deep-dive ---------- */
+  .feature-row{ display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; }
+  @media (max-width:900px){ .feature-row{ grid-template-columns:1fr; gap:40px; } }
+  .feature-row.reverse .feature-copy{ order:2; }
+  .feature-row.reverse .feature-visual{ order:1; }
+  @media (max-width:900px){ .feature-row.reverse .feature-copy{ order:1; } .feature-row.reverse .feature-visual{ order:2; } }
+  .feature-copy h2{ font-size:var(--h2); font-weight:300; line-height:1.2; margin:16px 0 16px; }
+  .feature-copy p.lede{ font-size:15.5px; color:var(--text-sub); line-height:1.7; margin-bottom:24px; }
+  .feature-list{ display:flex; flex-direction:column; gap:12px; margin-bottom:8px; }
+  .feature-list li{ display:flex; gap:10px; align-items:flex-start; font-size:14px; color:var(--text-sub); line-height:1.5; }
+  .feature-list .bullet{ width:7px; height:7px; margin-top:6px; flex-shrink:0; background:var(--cyan); transform:rotate(45deg); }
+  .gap-note{
+    margin-top:20px; padding:12px 14px; border-radius:var(--radius); border:1px solid var(--border);
+    background:var(--surface); font-size:12.5px; color:var(--text-muted); line-height:1.6;
+  }
+  .gap-note strong{ color:var(--amber); font-weight:600; }
+
+  .feature-block{ margin-bottom:112px; }
+  .feature-block:last-child{ margin-bottom:0; }
+  .feature-divider{ height:1px; background:var(--border); margin:96px 0; }
+
+  /* ---------- Mock UI card (reused shape) ---------- */
+  .mock-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:22px; box-shadow:0 0 40px rgba(34,225,225,0.1), 0 0 80px rgba(34,225,225,0.05);
+  }
+  .mock-topbar{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-family:'JetBrains Mono', monospace;
+    font-size:10.5px; color:var(--text-muted); padding-bottom:14px; border-bottom:1px solid var(--border); margin-bottom:14px;
+  }
+  .live-dot{
+    width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block;
+    margin-right:6px; animation:pulseDot 1.6s ease-in-out infinite;
+  }
+  @keyframes pulseDot{ 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+
+  .gen-tree{ display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .gen-feature{ font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--text); font-weight:600; margin-top:6px; }
+  .gen-feature:first-child{ margin-top:0; }
+  .gen-sub{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--text-muted); padding-left:14px; }
+  .gen-case{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:7px 10px; margin-left:14px; border-radius:var(--radius-sm); background:var(--surface-2);
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--text-sub);
+  }
+  .gen-tag{
+    font-size:9px; padding:2px 7px; border-radius:999px; letter-spacing:0.04em; flex-shrink:0;
+  }
+  .gen-tag.pos{ color:var(--green); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); }
+  .gen-tag.neg{ color:var(--red); background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); }
+  .gen-tag.edge{ color:var(--amber); background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); }
+  .gen-footer{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--cyan); border-top:1px solid var(--border); padding-top:12px; margin-top:4px; }
+
+  .pill{ font-family:'JetBrains Mono', monospace; font-size:11px; padding:5px 11px; border-radius:999px; border:1px solid var(--border); }
+  .pill.pass{ color:var(--green); border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.06); }
+  .pill.fail{ color:var(--red); border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.06); }
+  .pill.analysing{ color:var(--cyan); border-color:rgba(34,225,225,0.3); background:rgba(34,225,225,0.06); }
+  .dash-stats{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .dash-tests{ display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
+  .dash-test{
+    display:flex; justify-content:space-between; align-items:center; font-family:'JetBrains Mono', monospace;
+    font-size:11.5px; padding:9px 11px; border-radius:var(--radius-sm); background:var(--surface-2);
+  }
+  .dash-test.fail{ color:var(--red); }
+  .dash-test.pass{ color:var(--text-sub); }
+  .ai-card{ border:1px solid var(--border-glow); border-radius:var(--radius); padding:14px; background:rgba(34,225,225,0.05); }
+  .ai-card .ai-title{ font-size:12.5px; font-weight:600; color:var(--text); margin-bottom:7px; }
+  .ai-card p{ font-size:11.5px; color:var(--text-sub); line-height:1.55; margin-bottom:7px; }
+  .ai-meta{ display:flex; gap:14px; font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--text-muted); }
+  .ai-meta .impact-high{ color:var(--red); }
+
+  /* ---------- Suite/Flow mapping table ---------- */
+  .map-row{
+    display:grid; grid-template-columns:1fr auto 1.3fr; gap:20px; align-items:center;
+    padding:20px 0; border-bottom:1px solid var(--border);
+  }
+  .map-row:last-child{ border-bottom:none; }
+  @media (max-width:800px){ .map-row{ grid-template-columns:1fr; gap:10px; } }
+  .map-tag{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; }
+  .map-tag span{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-muted); display:block; margin-bottom:5px; }
+  .map-tag strong{ font-size:14px; font-weight:600; color:var(--text); }
+  .map-arrow{ display:flex; align-items:center; justify-content:center; }
+  .map-arrow-line{ width:28px; height:1px; background:var(--cyan); opacity:0.55; }
+  .map-arrow-diamond{ width:6px; height:6px; background:var(--cyan); transform:rotate(45deg); margin-left:-1px; }
+  @media (max-width:800px){ .map-arrow{ transform:rotate(90deg); margin:2px auto; } }
+  .map-solution{
+    background:var(--surface); border-radius:var(--radius); padding:16px 20px;
+    background-image:linear-gradient(var(--surface),var(--surface)), linear-gradient(135deg, var(--blue) 0%, var(--cyan) 100%);
+    background-origin:border-box; background-clip:padding-box, border-box; border:1px solid transparent;
+  }
+  .map-solution strong{ display:block; font-size:14.5px; font-weight:600; color:var(--text); margin-bottom:4px; }
+  .map-solution p{ font-size:13px; color:var(--text-sub); line-height:1.55; }
+
+  /* ---------- Lifecycle steps ---------- */
+  .lifecycle-track{ display:grid; grid-template-columns:repeat(6, 1fr); gap:14px; }
+  @media (max-width:1024px){ .lifecycle-track{ grid-template-columns:repeat(3, 1fr); } }
+  @media (max-width:640px){ .lifecycle-track{ grid-template-columns:1fr; } }
+  .lifecycle-step{ position:relative; padding:20px 14px; border-top:1px solid var(--border); }
+  .lifecycle-step .step-num{
+    font-family:'Space Grotesk', sans-serif; font-size:52px; font-weight:700; color:var(--text);
+    opacity:0.07; position:absolute; top:0; left:10px; line-height:1;
+  }
+  .lifecycle-step .step-icon{ position:relative; width:26px; height:26px; color:var(--cyan); margin-top:6px; }
+  .lifecycle-step .step-icon svg{ width:100%; height:100%; }
+  .lifecycle-step h3{ position:relative; font-size:15px; font-weight:600; color:var(--text); margin:12px 0 8px; }
+  .lifecycle-step p{ position:relative; font-size:12.5px; color:var(--text-sub); line-height:1.55; }
+
+  .lifecycle-learn-more{
+    display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+    margin-top:48px; padding:24px 28px; border-radius:var(--radius-lg); border:1px solid var(--border-glow);
+    background:linear-gradient(135deg, rgba(34,225,225,0.07), rgba(139,92,246,0.04));
+  }
+  .lifecycle-learn-more .llm-text strong{ display:block; font-size:16px; font-weight:600; color:var(--text); margin-bottom:4px; }
+  .lifecycle-learn-more .llm-text span{ font-size:13px; color:var(--text-sub); }
+
+  /* ---------- Roadmap ---------- */
+  .roadmap-list{ display:flex; flex-direction:column; gap:0; max-width:760px; margin:0 auto; }
+  .roadmap-item{
+    display:flex; gap:18px; align-items:flex-start; padding:18px 0; border-bottom:1px solid var(--border);
+  }
+  .roadmap-item:last-child{ border-bottom:none; }
+  .roadmap-priority{
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--cyan); flex-shrink:0; width:24px; padding-top:2px;
+  }
+  .roadmap-item h4{ font-size:14.5px; font-weight:600; color:var(--text); margin-bottom:4px; }
+  .roadmap-item p{ font-size:13px; color:var(--text-sub); line-height:1.55; }
+
+  /* ---------- Honest gaps ---------- */
+  .gaps-list{ max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:14px; }
+  .gaps-item{
+    display:flex; gap:12px; align-items:flex-start; font-size:13.5px; color:var(--text-sub);
+    line-height:1.6; padding:14px 16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  }
+  .gaps-item .mark{ color:var(--amber); flex-shrink:0; font-family:'JetBrains Mono', monospace; font-size:13px; }
+
+  /* ---------- CTA ---------- */
+  .cta-section{ text-align:center; background:var(--bg); position:relative; overflow:hidden; }
+  .cta-section::before{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse 70% 60% at 50% 50%, rgba(34,225,225,0.1) 0%, transparent 65%);
+    pointer-events:none;
+  }
+  .cta-section .inner{ position:relative; z-index:2; }
+  .cta-section h2{ font-size:var(--display); font-weight:300; line-height:1.08; margin:20px 0 20px; }
+  .cta-section p{ font-size:17px; color:var(--text-sub); max-width:480px; margin:0 auto 36px; }
+
+  /* ---------- Footer ---------- */
+  footer{ background:#03060B; border-top:1px solid var(--border); padding:48px 0 32px; }
+  .footer-inner{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px;
+  }
+  .footer-back{
+    display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--text-muted);
+  }
+  .footer-back a{ color:var(--cyan); }
+  .footer-meta{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-muted); }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="pulse.html" class="brand">
+      <svg class="brand-mark" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#22D3EE"/>
+            <stop offset="1" stop-color="#22E5E5"/>
+          </linearGradient>
+        </defs>
+        <circle cx="14" cy="8.3" r="4.4" fill="none" stroke="url(#logoGrad)" stroke-width="1.3"/>
+        <rect x="12.4" y="6.7" width="3.2" height="3.2" transform="rotate(45 14 8.3)" fill="url(#logoGrad)"/>
+        <rect x="13.4" y="12.7" width="1.2" height="11.4" rx="0.6" fill="url(#logoGrad)"/>
+        <rect x="12.4" y="13.8" width="3.2" height="1" rx="0.5" fill="url(#logoGrad)"/>
+      </svg>
+      <span class="brand-word">SHILOH</span>
+      <span class="brand-sub">PULSE</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#pain-map">Why Pulse</a>
+      <a href="#generation">Generation</a>
+      <a href="#execution">Execution</a>
+      <a href="#reporting">Reporting</a>
+      <a href="#devops">DevOps</a>
+      <a href="lifecycle.html">Lifecycle</a>
+      <a href="portal.html">Shiloh Team ↗</a>
+      <a href="index.html">Shiloh ↗</a>
+    </nav>
+    <a href="#contact" class="nav-cta" style="display:inline-block;">Get Started</a>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#pain-map">Why Pulse</a>
+    <a href="#generation">Generation</a>
+    <a href="#execution">Execution</a>
+    <a href="#reporting">Reporting</a>
+    <a href="#devops">DevOps</a>
+    <a href="lifecycle.html">Lifecycle</a>
+    <a href="portal.html">Shiloh Team ↗</a>
+    <a href="index.html">Shiloh ↗</a>
+    <a href="#contact" class="nav-cta">Get Started</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-scanlines"></div>
+    <canvas class="hero-scepter" id="heroScepter" aria-hidden="true"></canvas>
+    <div class="hero-content">
+      <span class="eyebrow mono">// SHILOH TEST · QA INTELLIGENCE PLATFORM</span>
+      <h1 class="hero-headline">Ship a build.<br>Get back evidence.</h1>
+      <p class="hero-sub">A URL, an APK, an FRS document, or just screenshots — that's all Pulse needs. AI drafts the test cases, runs them, and reports back. You keep the judgment calls on what ships.</p>
+      <div class="hero-ctas">
+        <a href="#contact" class="btn-primary">Get Started →</a>
+        <a href="#pain-map" class="btn-secondary">See the pain map →</a>
+      </div>
+      <div class="hero-stats">
+        <span class="stat mono">Web · Android · iOS soon</span>
+        <span class="divider"></span>
+        <span class="stat mono">AI-Drafted, Human-Approved</span>
+        <span class="divider"></span>
+        <span class="stat mono">Zero Setup Gate</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAIN MAP -->
+  <section id="pain-map">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="eyebrow mono">// THE QA PAIN MAP</span>
+        <h2>Every feature exists because manual QA bleeds time somewhere.</h2>
+        <p>This is the map. Each pain point has a specific answer, built into the product — not bolted on.</p>
+      </div>
+      <div class="grid-3 reveal-stagger">
+        <div class="pain-card reveal">
+          <span class="num mono">01</span>
+          <h3>Requirements arrive in any form — FRS docs, images, or "here's the app, figure it out"</h3>
+          <div class="answer"><span class="diamond"></span>Generation tab</div>
+          <p>Multi-modal AI generation with a live streaming feed. No format is off-limits.</p>
+        </div>
+        <div class="pain-card reveal">
+          <span class="num mono">02</span>
+          <h3>New features land and test cases lag behind</h3>
+          <div class="answer"><span class="diamond"></span>Generation tab</div>
+          <p>Incremental generation, a coverage Q&amp;A bot with one-click gap-fill, and AI editing.</p>
+        </div>
+        <div class="pain-card reveal">
+          <span class="num mono">03</span>
+          <h3>Organising smoke, sanity, and regression packs</h3>
+          <div class="answer"><span class="diamond"></span>Suites / Flows / Execution</div>
+          <p>Suites as packs, Flows chaining suites, Rounds per manual cycle.</p>
+        </div>
+        <div class="pain-card reveal">
+          <span class="num mono">04</span>
+          <h3>Execution is slow, manual drudgery</h3>
+          <div class="answer"><span class="diamond"></span>Execution tab + Agent</div>
+          <p>One-click manual recording with evidence; one-click automated runs with a live view.</p>
+        </div>
+        <div class="pain-card reveal">
+          <span class="num mono">05</span>
+          <h3>Reporting eats a QA lead's entire week</h3>
+          <div class="answer"><span class="diamond"></span>Runs / Reports</div>
+          <p>Auto pass/fail, AI root cause per failure, executive reports, PDF/CSV export, email alerts.</p>
+        </div>
+        <div class="pain-card reveal">
+          <span class="num mono">06</span>
+          <h3>"Can we actually trust this coverage?"</h3>
+          <div class="answer"><span class="diamond"></span>Coverage tab</div>
+          <p>Traceability to source, case-type mix, honest gap surfacing, a full evidence trail.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIFECYCLE -->
+  <section class="band">
+    <div class="container pipeline3-wrap">
+      <div class="section-header reveal">
+        <span class="eyebrow mono">// THE LIFECYCLE</span>
+        <h2>Ship it to us. We test it. We ship it back.</h2>
+        <p>Every stage feeds the next without a manual translation step. The FRS is the input to generation. The generated case is the executable spec. The failure is the defect draft. The results are the report.</p>
+      </div>
+      <div class="pipeline3-canvas-wrap reveal">
+        <canvas id="pipeline3Canvas" aria-hidden="true"></canvas>
+      </div>
+      <div class="pipeline3-stages reveal">
+        <span class="pipeline-stage" id="p3StageGen">Generation</span>
+        <span class="pipeline-stage" id="p3StageExec">Execution — Automated</span>
+        <span class="pipeline-stage" id="p3StageReport">Reporting</span>
+      </div>
+      <div class="lifecycle-track reveal-stagger" style="margin-top:64px;">
+        <div class="lifecycle-step reveal">
+          <span class="step-num mono">01</span>
+          <div class="step-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 4v14"/><path d="M10 12l6 6 6-6"/><path d="M5 20v5a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-5"/>
+            </svg>
+          </div>
+          <h3>Intake</h3>
+          <p>A URL, an APK upload, an FRS document, or screenshots — however the build already exists.</p>
+        </div>
+        <div class="lifecycle-step reveal">
+          <span class="step-num mono">02</span>
+          <div class="step-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="16" cy="6" r="2.4"/><circle cx="8" cy="24" r="2.4"/><circle cx="16" cy="24" r="2.4"/><circle cx="24" cy="24" r="2.4"/>
+              <path d="M16 8.4v6"/><path d="M16 14.4l-8 7"/><path d="M16 14.4v7"/><path d="M16 14.4l8 7"/>
+            </svg>
+          </div>
+          <h3>AI Generation</h3>
+          <p>Features → sub-features → typed test cases, identified and watched live as they're discovered.</p>
+        </div>
+        <div class="lifecycle-step reveal">
+          <span class="step-num mono">03</span>
+          <div class="step-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="16" cy="16" r="11"/><path d="M13 11.5l8 4.5-8 4.5v-9z" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <h3>Execution</h3>
+          <p>Manual rounds with one-click evidence, or automated runs via the Pulse Agent with live screenshots.</p>
+        </div>
+        <div class="lifecycle-step reveal">
+          <span class="step-num mono">04</span>
+          <div class="step-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="13" cy="13" r="8"/><path d="M19 19l7 7"/><path d="M13 9.5v4"/><circle cx="13" cy="16.2" r="0.6" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <h3>AI Analysis</h3>
+          <p>Every failure classified — real bug, flaky, or environment — and linked to the case it breaks.</p>
+        </div>
+        <div class="lifecycle-step reveal">
+          <span class="step-num mono">05</span>
+          <div class="step-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 4h12l6 6v18a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M20 4v6h6"/><path d="M11 24v-5"/><path d="M16 24v-8"/><path d="M21 24v-3"/>
+            </svg>
+          </div>
+          <h3>Reports Out</h3>
+          <p>Executive summary, PDF, CSV, email — generated automatically, not written by hand.</p>
+        </div>
+        <div class="lifecycle-step reveal">
+          <span class="step-num mono">06</span>
+          <div class="step-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 11l12-6 12 6-12 6-12-6z"/><path d="M4 11v11l12 6 12-6V11"/><path d="M16 17v11"/><path d="M11.5 21l3 2.6 5.5-6.2"/>
+            </svg>
+          </div>
+          <h3>Ship Back</h3>
+          <p>With coverage proof, evidence, and a prioritised risk list — ready for the sign-off call.</p>
+        </div>
+      </div>
+
+      <div class="lifecycle-learn-more reveal">
+        <div class="llm-text">
+          <strong>See exactly how each stage works.</strong>
+          <span>Generic examples, illustrations, and before/after comparisons for all six stages.</span>
+        </div>
+        <a href="lifecycle.html" class="btn-primary" style="white-space:nowrap;">Explore the full lifecycle →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- GENERATION -->
+  <section id="generation">
+    <div class="container">
+      <div class="feature-block">
+        <div class="feature-row">
+          <div class="feature-copy reveal">
+            <span class="eyebrow mono">// GENERATION</span>
+            <h2>Feed it anything. Get back a full test hierarchy.</h2>
+            <p class="lede">FRS documents, screenshots, a plain-English description, or just a URL — Generation accepts all of it, and produces a Feature → Sub-feature → Test case hierarchy, streamed live as Claude reads through your material. No prerequisite steps.</p>
+            <ul class="feature-list">
+              <li><span class="bullet"></span> FRS documents (PDF / .docx) parsed and grounded automatically</li>
+              <li><span class="bullet"></span> Screenshots alone are enough — generate multi-modally, no text required</li>
+              <li><span class="bullet"></span> Every test case classified as Positive, Negative, or Edge at generation time</li>
+              <li><span class="bullet"></span> Traceable via a source reference back to the exact requirement it came from</li>
+              <li><span class="bullet"></span> Real runnable code from day one — Playwright for web, WebdriverIO/Appium for Android</li>
+            </ul>
+          </div>
+          <div class="feature-visual reveal">
+            <div class="mock-card">
+              <div class="mock-topbar">
+                <span><span class="live-dot"></span>GENERATING</span>
+                <span>Source: Loyalty_Points_FRS.pdf</span>
+              </div>
+              <div class="gen-tree">
+                <div class="gen-feature">Feature: Loyalty Points</div>
+                <div class="gen-sub">Sub-feature: Redeem points</div>
+                <div class="gen-case"><span>TC-101 · redeem_points_at_checkout</span><span class="gen-tag pos">POSITIVE</span></div>
+                <div class="gen-case"><span>TC-102 · redeem_more_than_balance</span><span class="gen-tag neg">NEGATIVE</span></div>
+                <div class="gen-case"><span>TC-103 · redeem_at_exact_balance</span><span class="gen-tag edge">EDGE</span></div>
+                <div class="gen-feature">Feature: Tier Upgrades</div>
+                <div class="gen-sub">Sub-feature: Upgrade notification</div>
+                <div class="gen-case"><span>TC-104 · tier_upgrade_email_sent</span><span class="gen-tag pos">POSITIVE</span></div>
+              </div>
+              <div class="gen-footer">→ 4 test cases identified · streaming from page 3 of 11</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-divider"></div>
+
+      <div class="feature-block">
+        <div class="feature-row reverse">
+          <div class="feature-visual reveal">
+            <div class="mock-card">
+              <div class="mock-topbar">
+                <span><span class="live-dot"></span>COVERAGE BOT</span>
+                <span>Suite: Loyalty Points</span>
+              </div>
+              <div class="gen-tree">
+                <div class="gen-sub" style="padding-left:0; color:var(--text-sub); font-size:11.5px; line-height:1.6;">"Do we have any test cases on the OTP flow?"</div>
+                <div class="gen-sub" style="padding-left:0; color:var(--cyan); font-size:11.5px; line-height:1.6; margin-top:6px;">No coverage found on OTP verification. Proposed: TC-201 · verify_otp_on_redemption</div>
+              </div>
+              <div class="gen-footer">→ Add test case — prefills the generation box</div>
+            </div>
+          </div>
+          <div class="feature-copy reveal">
+            <span class="eyebrow mono">// COVERAGE BOT &amp; AI EDITING</span>
+            <h2>Ask about your test cases. Fill the gap in two clicks.</h2>
+            <p class="lede">"Ask about your test cases" answers questions like this strictly from your real cases, citing the exact TC-00N cases that support the answer. When coverage is missing, it proposes a ready-to-use test case with a one-click Add button.</p>
+            <ul class="feature-list">
+              <li><span class="bullet"></span> Grounded answers only — the bot never invents coverage that isn't there</li>
+              <li><span class="bullet"></span> Any test case or whole sub-feature can be edited with a natural-language instruction</li>
+              <li><span class="bullet"></span> Edits are previewed first, applied only on confirmation</li>
+              <li><span class="bullet"></span> The Coverage dashboard closes the loop — unclassified cases, never-executed cases, missing negative/edge coverage</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUITES / FLOWS / EXECUTION -->
+  <section id="execution" class="band">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="eyebrow mono">// SUITES, FLOWS &amp; EXECUTION</span>
+        <h2>Smoke tests, regression packs, manual cycles — however your team already thinks about testing.</h2>
+        <p>The concepts map directly onto constructs your team already knows.</p>
+      </div>
+      <div class="reveal-stagger" style="max-width:900px; margin:0 auto 80px;">
+        <div class="map-row reveal">
+          <div class="map-tag"><span>TESTING CONCEPT</span><strong>Smoke / sanity pack</strong></div>
+          <div class="map-arrow"><span class="map-arrow-line"></span><span class="map-arrow-diamond"></span></div>
+          <div class="map-solution"><strong>Suite</strong><p>Name suites as packs — "Smoke — checkout", "Sanity — auth" — each one-click runnable.</p></div>
+        </div>
+        <div class="map-row reveal">
+          <div class="map-tag"><span>TESTING CONCEPT</span><strong>Regression pack</strong></div>
+          <div class="map-arrow"><span class="map-arrow-line"></span><span class="map-arrow-diamond"></span></div>
+          <div class="map-solution"><strong>Flow (pipeline)</strong><p>Chain suites on a canvas — session (cookies/login) carries across stages, so later suites start authenticated.</p></div>
+        </div>
+        <div class="map-row reveal">
+          <div class="map-tag"><span>TESTING CONCEPT</span><strong>Test cycle / round</strong></div>
+          <div class="map-arrow"><span class="map-arrow-line"></span><span class="map-arrow-diamond"></span></div>
+          <div class="map-solution"><strong>Execution round (R1, R2…)</strong><p>Manual execution scoped per round per platform, with per-round reset and reporting.</p></div>
+        </div>
+        <div class="map-row reveal">
+          <div class="map-tag"><span>TESTING CONCEPT</span><strong>Cross-platform pass</strong></div>
+          <div class="map-arrow"><span class="map-arrow-line"></span><span class="map-arrow-diamond"></span></div>
+          <div class="map-solution"><strong>Platform tabs</strong><p>Suites tagged Website / Android / iOS — the Execution dashboard groups by platform.</p></div>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-copy reveal">
+          <h2 style="font-size:var(--h2); font-weight:300; margin-bottom:16px;">Manual when you need control. Automated when you need speed.</h2>
+          <p class="lede">The Execution dashboard is built for speed — every case gets one-click Pass / Fail / Blocked, with an expandable panel only when you want notes and evidence. The <strong style="color:var(--text);">Run Suite</strong> button dispatches automated specs to a Pulse Agent: a single standalone binary, no Node install needed.</p>
+          <ul class="feature-list">
+            <li><span class="bullet"></span> Manual: filter by status, case type, epic, or free-text search</li>
+            <li><span class="bullet"></span> Automated: live results and live screenshots stream back per test</li>
+            <li><span class="bullet"></span> Real-world blockers handled — a waitForOtp helper polls for codes via Twilio or Mac Messages</li>
+            <li><span class="bullet"></span> Quick Launch — open any URL on an agent machine for an instant eyeball check</li>
+          </ul>
+          <div class="gap-note"><strong>Honest gap:</strong> test type is currently a naming convention on suites, not a first-class field. Explicit smoke/sanity/regression tags with one-click "run the smoke pack" are on the roadmap.</div>
+        </div>
+        <div class="feature-visual reveal">
+          <div class="mock-card">
+            <div class="mock-topbar">
+              <span><span class="live-dot"></span>LIVE</span>
+              <span>Suite: Checkout Regression</span>
+              <span>Agent: qa-agent-04</span>
+            </div>
+            <div class="dash-stats">
+              <span class="pill pass">44 PASSED ✓</span>
+              <span class="pill fail">2 FAILED ✗</span>
+              <span class="pill analysing">1 ANALYSING ◌</span>
+            </div>
+            <div class="dash-tests">
+              <div class="dash-test pass"><span>✓ apply_promo_code</span><span>0.9s</span></div>
+              <div class="dash-test pass"><span>✓ guest_checkout_flow</span><span>1.4s</span></div>
+              <div class="dash-test fail"><span>✗ saved_card_autofill</span><span>FAILED</span></div>
+            </div>
+            <div class="ai-card">
+              <div class="ai-title">◈ AI Root Cause</div>
+              <p>Saved card autofill breaks after the payment-form refactor merged this morning</p>
+              <div class="ai-meta"><span>Confidence: 91%</span><span class="impact-high">Real Bug</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPORTING & COVERAGE -->
+  <section id="reporting">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="eyebrow mono">// REPORTING &amp; COVERAGE</span>
+        <h2>Reporting is generated, not written.</h2>
+        <p>Confidence comes from a system that can't flatter itself.</p>
+      </div>
+      <div class="grid-3 reveal-stagger">
+        <div class="pain-card reveal">
+          <h3 style="margin-bottom:10px;">Per automated run</h3>
+          <p>Pass/fail/skip counts and durations, plus AI root-cause analysis on every failure: probable cause, contributing factors, suggested fix, confidence score, and a classification — real bug, flaky, environment, or bad test data.</p>
+        </div>
+        <div class="pain-card reveal">
+          <h3 style="margin-bottom:10px;">Executive report per run</h3>
+          <p>Plain-English summary, key risks, recommendations, and trend versus the prior run — exportable to PDF for the people who don't open the dashboard.</p>
+        </div>
+        <div class="pain-card reveal">
+          <h3 style="margin-bottom:10px;">Per manual round</h3>
+          <p>CSV export and a formatted PDF execution report — project, platform, round, per-case status, type, and notes.</p>
+        </div>
+        <div class="pain-card reveal">
+          <h3 style="margin-bottom:10px;">Coverage dashboard</h3>
+          <p>Case-type mix is visible — a suite that only tests happy paths is immediately obvious. Gaps are surfaced, not hidden: 88% never-run shows as 88% never-run.</p>
+        </div>
+        <div class="pain-card reveal">
+          <h3 style="margin-bottom:10px;">Evidence trail</h3>
+          <p>Manual executions attach screenshots and recordings. Automated failures capture screenshots. Every defect carries both.</p>
+        </div>
+        <div class="pain-card reveal">
+          <h3 style="margin-bottom:10px;">Alerts</h3>
+          <p>Email notification on run completion, so nobody has to poll a screen waiting for results.</p>
+        </div>
+      </div>
+      <div class="gap-note" style="max-width:760px; margin:40px auto 0;">
+        <strong>How the AI stays honest:</strong> the coverage bot answers only from real cases and cites their IDs. Coverage insights are generated from deterministically computed counts — the AI narrates the numbers, it never produces them. Defect analysis links to the actual failing result, with its stack trace and screenshot.
+      </div>
+    </div>
+  </section>
+
+  <!-- THE APP -->
+  <section id="app" class="band">
+    <div class="container">
+      <div class="feature-row">
+        <div class="feature-visual reveal">
+          <div class="phone-frame" id="phoneFrame">
+            <span class="phone-btn phone-btn-power"></span>
+            <span class="phone-btn phone-btn-vol1"></span>
+            <span class="phone-btn phone-btn-vol2"></span>
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="phone-time">09:41</div>
+              <div class="phone-date">Monday · Locked</div>
+              <div class="phone-notifs" id="phoneNotifs">
+                <div class="phone-notif" style="--notif-accent:#EF4444;">
+                  <span class="phone-notif-unread"></span>
+                  <div class="phone-notif-head">
+                    <span class="phone-notif-icon"></span>
+                    <span class="phone-notif-app">Shiloh Pulse</span>
+                    <span class="phone-notif-time">now</span>
+                  </div>
+                  <div class="phone-notif-title">Checkout Regression — 2 failures</div>
+                  <div class="phone-notif-body">AI root cause ready: saved_card_autofill broke after this morning's deploy.</div>
+                </div>
+                <div class="phone-notif" style="--notif-accent:var(--green);">
+                  <div class="phone-notif-head">
+                    <span class="phone-notif-icon"></span>
+                    <span class="phone-notif-app">Shiloh Pulse</span>
+                    <span class="phone-notif-time">2m</span>
+                  </div>
+                  <div class="phone-notif-title">Onboarding Smoke — run complete</div>
+                  <div class="phone-notif-body">18 of 19 passed. Tap to view the full report.</div>
+                </div>
+                <div class="phone-notif" style="--notif-accent:var(--cyan);">
+                  <div class="phone-notif-head">
+                    <span class="phone-notif-icon"></span>
+                    <span class="phone-notif-app">Shiloh Pulse</span>
+                    <span class="phone-notif-time">1h</span>
+                  </div>
+                  <div class="phone-notif-title">Weekly coverage report</div>
+                  <div class="phone-notif-body">Your Monday digest is ready — 6 suites, 214 test cases.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="platform-badges">
+            <span class="platform-badge"><span class="dot"></span>iOS</span>
+            <span class="platform-badge"><span class="dot"></span>Android</span>
+          </div>
+        </div>
+        <div class="feature-copy reveal">
+          <span class="eyebrow mono">// THE APP</span>
+          <h2>Pulse doesn't wait for you to check.</h2>
+          <p class="lede">Every run completion, every failure, every report — pushed straight to your phone the moment it lands. You don't have to babysit a dashboard to know what's happening.</p>
+          <ul class="feature-list">
+            <li><span class="bullet"></span> Real-time push notifications on iOS and Android</li>
+            <li><span class="bullet"></span> AI root cause summarised right in the notification — no dashboard required</li>
+            <li><span class="bullet"></span> Daily and weekly digest options, so urgent and routine stay separate</li>
+            <li><span class="bullet"></span> Notification rules per project, so you only hear about what matters</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-divider"></div>
+
+      <div class="feature-row reverse">
+        <div class="feature-copy reveal">
+          <span class="eyebrow mono">// EVERY SCREEN</span>
+          <h2>A native app, not a shrunk-down dashboard.</h2>
+          <p class="lede">Eleven screens, one continuous story: summary, live runs, failure evidence, AI root cause, defect triage, and executive reports — each built for a phone from the ground up, not squeezed from a desktop layout.</p>
+          <ul class="feature-list">
+            <li><span class="bullet"></span> Summary — every project's pulse, with the single most urgent thing surfaced first</li>
+            <li><span class="bullet"></span> Runs &amp; Run detail — live status on every suite, with a Stop control while it's running</li>
+            <li><span class="bullet"></span> Failure detail &amp; AI root cause — raw error, screenshot, and a fix written for a non-engineer</li>
+            <li><span class="bullet"></span> Projects &amp; Project pulse — per-project health, suites, and machine status</li>
+            <li><span class="bullet"></span> Defects &amp; Defect detail — triage with repro steps and evidence, from a phone</li>
+            <li><span class="bullet"></span> Reports &amp; Change detail — executive summaries, and every AI edit shown as a before/after diff</li>
+          </ul>
+        </div>
+        <div class="feature-visual reveal">
+          <div class="phone-frame" id="appTourFrame">
+            <span class="phone-btn phone-btn-power"></span>
+            <span class="phone-btn phone-btn-vol1"></span>
+            <span class="phone-btn phone-btn-vol2"></span>
+            <div class="phone-notch"></div>
+            <div class="phone-screen phone-screen-app" id="appTourScreen">
+
+              <!-- SUMMARY -->
+              <div class="pui-slide is-active" data-label="Summary">
+                <div class="pui-header">
+                  <div class="pui-title">Summary</div>
+                  <div class="pui-sub">4 projects · Mon 17 Aug</div>
+                </div>
+                <div class="pui-banner">
+                  <div class="pui-banner-title">⚠ Critical defect on Kalahari Bank</div>
+                  <p>DEF-241 — card payment fails silently on 3DS challenge. Raised 2 days ago, still open.</p>
+                </div>
+                <div class="pui-card">
+                  <div class="pui-card-row">
+                    <div>
+                      <div class="pui-metric-label">Pulse</div>
+                      <div class="pui-metric-num">87%</div>
+                      <div class="pui-metric-sub">+12 pts vs prior 14 days</div>
+                    </div>
+                    <div class="pui-donut" style="background:conic-gradient(var(--cyan) 0% 87%, var(--border) 87% 100%);"><div class="pui-donut-hole">87%</div></div>
+                  </div>
+                  <div class="pui-metric-sub" style="margin-top:2px;">142 runs · last 14 days</div>
+                </div>
+                <div class="pui-mini-grid">
+                  <div class="pui-card">
+                    <div class="pui-mini-label">Runs</div>
+                    <div class="pui-mini-num">6</div>
+                    <div class="pui-mini-sub">in flight today</div>
+                  </div>
+                  <div class="pui-card">
+                    <div class="pui-mini-label">Machines</div>
+                    <div class="pui-mini-num">3/4</div>
+                    <div class="pui-mini-sub">agents online</div>
+                  </div>
+                </div>
+                <div class="pui-card">
+                  <div class="pui-mini-label" style="color:var(--amber);">Defects</div>
+                  <div class="pui-mini-num">7</div>
+                  <div class="pui-mini-sub">open, none urgent</div>
+                </div>
+              </div>
+
+              <!-- RUNS -->
+              <div class="pui-slide" data-label="Runs">
+                <div class="pui-header">
+                  <div class="pui-title">Runs</div>
+                  <div class="pui-sub">Every project · newest first</div>
+                </div>
+                <div class="pui-pills">
+                  <span class="pui-pill on">All</span><span class="pui-pill">Active</span><span class="pui-pill">Failed</span><span class="pui-pill">Passed</span>
+                </div>
+                <div class="pui-rows">
+                  <div class="pui-row">
+                    <span class="pui-row-icon pending pui-run-spin">✳</span>
+                    <div class="pui-row-main"><div class="pui-row-title">Checkout Regression</div><div class="pui-row-sub">Northwind Retail · now</div></div>
+                    <div class="pui-row-stat">18 · 1 · 0</div>
+                  </div>
+                  <div class="pui-row">
+                    <span class="pui-row-icon fail">✕</span>
+                    <div class="pui-row-main"><div class="pui-row-title">Main Suite</div><div class="pui-row-sub">Kalahari Bank · 12m ago</div></div>
+                    <div class="pui-row-stat">41 · 5 · 2</div>
+                  </div>
+                  <div class="pui-row">
+                    <span class="pui-row-icon pass">✓</span>
+                    <div class="pui-row-main"><div class="pui-row-title">Smoke — iOS</div><div class="pui-row-sub">Northwind Retail · 48m ago</div></div>
+                    <div class="pui-row-stat">24 · 0 · 1</div>
+                  </div>
+                  <div class="pui-row">
+                    <span class="pui-row-icon pending">◌</span>
+                    <div class="pui-row-main"><div class="pui-row-title">Nightly Full</div><div class="pui-row-sub">Aurora Health · 1h ago</div></div>
+                    <div class="pui-row-stat">0 · 0 · 0</div>
+                  </div>
+                  <div class="pui-row">
+                    <span class="pui-row-icon warn">▢</span>
+                    <div class="pui-row-main"><div class="pui-row-title">Payments API</div><div class="pui-row-sub">Kalahari Bank · 3h ago</div></div>
+                    <div class="pui-row-stat">9 · 0 · 14</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RUN DETAIL -->
+              <div class="pui-slide" data-label="Run detail">
+                <div class="pui-header">
+                  <div class="pui-title">Checkout Regression</div>
+                  <div class="pui-sub">Northwind Retail · run 9182</div>
+                </div>
+                <div class="pui-card">
+                  <div class="pui-card-row" style="margin-bottom:8px;">
+                    <span class="pui-pill on" style="color:var(--blue); border-color:rgba(29,78,216,0.4); background:rgba(29,78,216,0.12);"><span class="pui-run-spin" style="display:inline-block;">✳</span> RUNNING</span>
+                    <span class="pui-metric-sub mono">⏱ 02:14</span>
+                  </div>
+                  <div class="pui-card-row">
+                    <div><div class="pui-metric-num" style="font-size:20px; color:var(--green);">18</div><div class="pui-mini-sub">passed</div></div>
+                    <div><div class="pui-metric-num" style="font-size:20px; color:var(--red);">1</div><div class="pui-mini-sub">failed</div></div>
+                    <div><div class="pui-metric-num" style="font-size:20px;">0</div><div class="pui-mini-sub">skipped</div></div>
+                  </div>
+                </div>
+                <div class="pui-stop-btn">▢ Stop run</div>
+                <div class="pui-sub" style="margin-bottom:6px;">LIVE · 19 OF 26</div>
+                <div class="pui-rows">
+                  <div class="pui-row pill"><span class="pui-row-icon pass">✓</span><div class="pui-row-main"><div class="pui-row-title">cart › adds item</div></div><div class="pui-row-stat">1.2s</div></div>
+                  <div class="pui-row pill"><span class="pui-row-icon fail">✕</span><div class="pui-row-main"><div class="pui-row-title">checkout › applies promo…</div></div><div class="pui-row-stat">15.0s</div></div>
+                  <div class="pui-row pill"><span class="pui-row-icon pending pui-run-spin">✳</span><div class="pui-row-main"><div class="pui-row-title">checkout › pays with card</div></div></div>
+                </div>
+              </div>
+
+              <!-- FAILURE DETAIL -->
+              <div class="pui-slide" data-label="Failure detail">
+                <div class="pui-header">
+                  <div class="pui-title">Failure detail</div>
+                  <div class="pui-sub">run 9181 · test 3 of 48</div>
+                </div>
+                <div class="pui-banner" style="margin-bottom:8px;">
+                  <div class="pui-banner-title">✕ checkout › applies promo code to order total</div>
+                </div>
+                <div class="pui-mono-block" style="margin-bottom:8px;">
+                  <div class="pui-ai-label" style="color:var(--red); margin-top:0;">&gt;_ Raw error</div>
+                  TimeoutError: locator.click: Timeout 15000ms exceeded.<br>waiting for getByRole('button', &#123; name: 'Apply' &#125;)
+                </div>
+                <div class="pui-shot-box">
+                  <div class="pui-ai-label" style="color:#C4B5FD; margin-top:0;">▤ Screenshot at failure</div>
+                  <div class="pui-shot-line" style="margin-top:6px;"></div>
+                  <div class="pui-shot-line short"></div>
+                </div>
+              </div>
+
+              <!-- AI ROOT CAUSE -->
+              <div class="pui-slide" data-label="AI root cause">
+                <div class="pui-header">
+                  <div class="pui-title">AI root cause</div>
+                  <div class="pui-sub">checkout › applies promo code</div>
+                </div>
+                <div class="pui-ai-card">
+                  <div class="pui-ai-title">◈ AI Root Cause</div>
+                  <div class="pui-ai-label">Category</div>
+                  <p>UI regression</p>
+                  <div class="pui-ai-label">Probable cause</div>
+                  <p>The Apply button now renders inside a lazy-loaded panel that mounts ~2s after the cart, so the click fires before the control exists.</p>
+                  <div class="pui-ai-label">Suggested fix</div>
+                  <p>Wait for the promo panel's loaded state before clicking, or restore the server-rendered Apply button.</p>
+                </div>
+              </div>
+
+              <!-- PROJECTS -->
+              <div class="pui-slide" data-label="Projects">
+                <div class="pui-header">
+                  <div class="pui-title">Projects</div>
+                  <div class="pui-sub">4 you belong to</div>
+                </div>
+                <div class="pui-rows" style="margin-bottom:7px;">
+                  <div class="pui-list-item">
+                    <div class="pui-ring" style="background:conic-gradient(var(--green) 0% 92%, var(--border) 92% 100%);"><div class="pui-ring-hole">92</div></div>
+                    <div class="pui-row-main"><div class="pui-list-name">Northwind Retail <span class="pui-star">★</span></div><div class="pui-list-meta"><span class="pui-dot-status on"></span>8 suites · online</div></div>
+                    <span class="pui-chevron">›</span>
+                  </div>
+                  <div class="pui-list-item">
+                    <div class="pui-ring" style="background:conic-gradient(var(--amber) 0% 71%, var(--border) 71% 100%);"><div class="pui-ring-hole">71</div></div>
+                    <div class="pui-row-main"><div class="pui-list-name">Kalahari Bank</div><div class="pui-list-meta"><span class="pui-dot-status on"></span>12 suites · online</div></div>
+                    <span class="pui-chevron">›</span>
+                  </div>
+                  <div class="pui-list-item">
+                    <div class="pui-ring" style="background:conic-gradient(var(--green) 0% 88%, var(--border) 88% 100%);"><div class="pui-ring-hole">88</div></div>
+                    <div class="pui-row-main"><div class="pui-list-name">Aurora Health</div><div class="pui-list-meta"><span class="pui-dot-status off"></span>5 suites · offline</div></div>
+                    <span class="pui-chevron">›</span>
+                  </div>
+                </div>
+                <div class="pui-card" style="margin-bottom:0;">
+                  <div class="pui-ai-label" style="color:var(--cyan); margin-top:0;">★ Active project</div>
+                  <p style="font-size:8.5px; color:var(--text-sub); line-height:1.4; margin:0;">Northwind Retail is set as active — Runs, Defects and Coverage filter to it until you change this.</p>
+                </div>
+              </div>
+
+              <!-- PROJECT PULSE -->
+              <div class="pui-slide" data-label="Project pulse">
+                <div class="pui-header">
+                  <div class="pui-title">Northwind Retail</div>
+                  <div class="pui-sub">Project pulse · last 14 days</div>
+                </div>
+                <div class="pui-card">
+                  <div class="pui-card-row">
+                    <div>
+                      <div class="pui-metric-label">Project pulse</div>
+                      <div class="pui-metric-num">92%</div>
+                      <div class="pui-metric-sub" style="color:var(--green);">↗ +4 pts vs prior 14 days</div>
+                    </div>
+                    <div class="pui-donut" style="background:conic-gradient(var(--cyan) 0% 92%, var(--border) 92% 100%);"><div class="pui-donut-hole">92%</div></div>
+                  </div>
+                  <div class="pui-metric-sub" style="margin-top:2px;">across 38 runs</div>
+                </div>
+                <div class="pui-mini-grid">
+                  <div class="pui-card">
+                    <div class="pui-mini-label" style="color:#C4B5FD;">Suites</div>
+                    <div class="pui-mini-num">8</div>
+                    <div class="pui-mini-sub">2 scheduled nightly</div>
+                  </div>
+                  <div class="pui-card">
+                    <div class="pui-mini-label">Machine</div>
+                    <div class="pui-mini-num">1/1</div>
+                    <div class="pui-mini-sub">online · last seen 2m</div>
+                  </div>
+                </div>
+                <div class="pui-card">
+                  <div class="pui-mini-label" style="color:var(--amber);">Defects</div>
+                  <div class="pui-mini-num">2</div>
+                  <div class="pui-mini-sub">open on this project</div>
+                </div>
+              </div>
+
+              <!-- DEFECTS -->
+              <div class="pui-slide" data-label="Defects">
+                <div class="pui-header">
+                  <div class="pui-title">Defects</div>
+                  <div class="pui-sub">All projects</div>
+                </div>
+                <div class="pui-pills">
+                  <span class="pui-pill on">Open</span><span class="pui-pill on">Critical</span><span class="pui-pill">High</span><span class="pui-pill">Resolved</span>
+                </div>
+                <div class="pui-rows">
+                  <div class="pui-row" style="align-items:flex-start; border:1px solid rgba(239,68,68,0.35); background:rgba(239,68,68,0.08);">
+                    <div class="pui-row-main">
+                      <div class="pui-card-row" style="margin-bottom:3px;"><span class="pui-row-sub mono" style="margin:0;">DEF-241</span><span class="pui-sev critical">Critical</span></div>
+                      <div class="pui-row-title" style="white-space:normal;">Card payment fails silently on 3DS challenge</div>
+                      <div class="pui-row-sub">Kalahari Bank · Open · open 2d</div>
+                    </div>
+                  </div>
+                  <div class="pui-row" style="align-items:flex-start;">
+                    <div class="pui-row-main">
+                      <div class="pui-card-row" style="margin-bottom:3px;"><span class="pui-row-sub mono" style="margin:0;">DEF-238</span><span class="pui-sev high">High</span></div>
+                      <div class="pui-row-title" style="white-space:normal;">Cart total ignores promo code after refresh</div>
+                      <div class="pui-row-sub">Northwind Retail · In triage · open 4d</div>
+                    </div>
+                  </div>
+                  <div class="pui-row" style="align-items:flex-start;">
+                    <div class="pui-row-main">
+                      <div class="pui-card-row" style="margin-bottom:3px;"><span class="pui-row-sub mono" style="margin:0;">DEF-233</span><span class="pui-sev medium">Medium</span></div>
+                      <div class="pui-row-title" style="white-space:normal;">Appointment picker skips 29 Feb</div>
+                      <div class="pui-row-sub">Aurora Health · Open · open 9d</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DEFECT DETAIL -->
+              <div class="pui-slide" data-label="Defect detail">
+                <div class="pui-header">
+                  <div class="pui-title">DEF-241</div>
+                  <div class="pui-sub">Kalahari Bank · critical</div>
+                </div>
+                <div class="pui-banner" style="margin-bottom:8px;">
+                  <div class="pui-banner-title" style="margin-bottom:6px;">Card payment fails silently on 3DS challenge</div>
+                  <span class="pui-sev critical" style="margin-right:5px;">Critical</span><span class="pui-chip">Open · 2d</span>
+                </div>
+                <div class="pui-card">
+                  <div class="pui-ai-label" style="color:var(--red); margin-top:0;">☣ Steps to reproduce</div>
+                  <div class="pui-steps" style="margin-top:5px;">
+                    <div class="pui-step"><span class="pui-step-num">1</span>Add any item to the basket and continue to payment</div>
+                    <div class="pui-step"><span class="pui-step-num">2</span>Enter a card enrolled in 3D Secure</div>
+                    <div class="pui-step"><span class="pui-step-num">3</span>Complete the bank challenge screen</div>
+                    <div class="pui-step"><span class="pui-step-num">4</span>Observe: spinner ends, no confirmation, no error</div>
+                  </div>
+                </div>
+                <div class="pui-card" style="margin-bottom:0;">
+                  <div class="pui-ai-label" style="color:#C4B5FD; margin-top:0;">📎 Evidence · 2</div>
+                  <div class="pui-evidence-grid" style="margin-top:6px;">
+                    <div class="pui-evidence-box"></div>
+                    <div class="pui-evidence-box"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- REPORTS -->
+              <div class="pui-slide" data-label="Reports">
+                <div class="pui-header">
+                  <div class="pui-title">Reports</div>
+                  <div class="pui-sub">Executive summaries</div>
+                </div>
+                <div class="pui-report-card">
+                  <div class="pui-card-row" style="align-items:flex-start;">
+                    <div>
+                      <div class="pui-report-label">Latest report</div>
+                      <div class="pui-report-title">Northwind Retail — Release 4.2 readiness</div>
+                      <div class="pui-report-meta">Generated 16 Aug · 9 pages</div>
+                    </div>
+                    <div class="pui-donut" style="width:34px; height:34px; background:conic-gradient(var(--green) 0% 92%, var(--border) 92% 100%);"><div class="pui-donut-hole" style="width:24px; height:24px; font-size:7px;">92%</div></div>
+                  </div>
+                  <div class="pui-report-desc">Checkout is release-ready. Two medium defects remain open in Search, both with workarounds documented.</div>
+                  <div class="pui-report-btns">
+                    <span class="pui-report-btn read">▤ Read</span>
+                    <span class="pui-report-btn share">⇢ Share link</span>
+                  </div>
+                </div>
+                <div class="pui-ai-label" style="margin:8px 0 5px;">Earlier</div>
+                <div class="pui-rows">
+                  <div class="pui-row"><div class="pui-row-main"><div class="pui-row-title">Release 4.1 readiness</div><div class="pui-row-sub">02 Aug</div></div><div class="pui-row-stat">88%</div></div>
+                  <div class="pui-row"><div class="pui-row-main"><div class="pui-row-title">Q2 quality review</div><div class="pui-row-sub">14 Jul</div></div><div class="pui-row-stat">81%</div></div>
+                </div>
+              </div>
+
+              <!-- CHANGE DETAIL -->
+              <div class="pui-slide" data-label="Change detail">
+                <div class="pui-header">
+                  <div class="pui-title">Change detail</div>
+                  <div class="pui-sub">Thabo M. · 22m ago</div>
+                </div>
+                <div class="pui-card">
+                  <div class="pui-ai-label" style="color:#C4B5FD; margin-top:0;">⑂ Checkout › applies promo code</div>
+                  <div class="pui-metric-sub" style="margin-top:3px;">Field changed: steps · expected result</div>
+                </div>
+                <div class="pui-diff-card before">
+                  <div class="pui-diff-label before">Before</div>
+                  <div class="pui-steps">
+                    <div class="pui-step"><span class="pui-step-num">1</span>Open the cart</div>
+                    <div class="pui-step"><span class="pui-step-num">2</span>Enter promo code SAVE10</div>
+                    <div class="pui-step"><span class="pui-step-num">3</span>Tap Apply</div>
+                  </div>
+                </div>
+                <div class="pui-diff-card after">
+                  <div class="pui-diff-label after">After</div>
+                  <div class="pui-steps">
+                    <div class="pui-step"><span class="pui-step-num">1</span>Open the cart</div>
+                    <div class="pui-step"><span class="pui-step-num">2</span>Wait for the promo panel to finish loading</div>
+                    <div class="pui-step"><span class="pui-step-num">3</span>Enter promo code SAVE10</div>
+                  </div>
+                </div>
+                <div class="pui-code-block">
+                  <div class="pui-code-line rm">- await page.getByRole('button').click()</div>
+                  <div class="pui-code-line add">+ await promoPanel.waitFor(); ...</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <div class="phone-caption mono" id="appTourCaption">Summary</div>
+          <div class="phone-pager" id="appTourPager" role="tablist" aria-label="Shiloh Pulse app screens">
+            <button class="active" role="tab" aria-selected="true" aria-label="Summary screen"></button>
+            <button role="tab" aria-selected="false" aria-label="Runs screen"></button>
+            <button role="tab" aria-selected="false" aria-label="Run detail screen"></button>
+            <button role="tab" aria-selected="false" aria-label="Failure detail screen"></button>
+            <button role="tab" aria-selected="false" aria-label="AI root cause screen"></button>
+            <button role="tab" aria-selected="false" aria-label="Projects screen"></button>
+            <button role="tab" aria-selected="false" aria-label="Project pulse screen"></button>
+            <button role="tab" aria-selected="false" aria-label="Defects screen"></button>
+            <button role="tab" aria-selected="false" aria-label="Defect detail screen"></button>
+            <button role="tab" aria-selected="false" aria-label="Reports screen"></button>
+            <button role="tab" aria-selected="false" aria-label="Change detail screen"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEVOPS -->
+  <section id="devops" class="band">
+    <div class="container">
+      <div class="feature-row">
+        <div class="feature-copy reveal">
+          <span class="eyebrow mono">// DEVOPS &amp; AUTOMATION</span>
+          <h2>Anything that can curl can trigger a run.</h2>
+          <p class="lede">Runs are dispatched via plain REST — <code class="mono" style="background:var(--surface-2); padding:2px 6px; border-radius:4px; font-size:12.5px;">POST /api/runs</code> with a suiteId — including from a CI job. The agent is a portable standalone binary that connects outbound over websockets, so there are no inbound firewall rules to negotiate.</p>
+          <ul class="feature-list">
+            <li><span class="bullet"></span> Install the agent on a build machine, a QA laptop, or a VM</li>
+            <li><span class="bullet"></span> Flows chain suites into regression pipelines, also dispatchable via API</li>
+            <li><span class="bullet"></span> Agent state reconciles on API restart — a dead agent can never silently absorb a dispatched run</li>
+          </ul>
+        </div>
+        <div class="feature-visual reveal">
+          <div class="mock-card">
+            <div class="mock-topbar"><span><span class="live-dot"></span>API</span><span>POST /api/runs</span></div>
+            <div class="gen-tree">
+              <div class="gen-sub" style="padding-left:0; color:var(--text-sub); font-size:11.5px;">curl -X POST https://api.pulse.shiloh/runs \</div>
+              <div class="gen-sub" style="padding-left:0; color:var(--text-sub); font-size:11.5px;">&nbsp;&nbsp;-H "Authorization: Bearer $TOKEN" \</div>
+              <div class="gen-sub" style="padding-left:0; color:var(--text-sub); font-size:11.5px;">&nbsp;&nbsp;-d '{"suiteId":"checkout-regression"}'</div>
+            </div>
+            <div class="gen-footer" style="color:var(--green);">→ 202 Accepted · dispatched to qa-agent-04</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-divider"></div>
+
+      <div class="section-header reveal">
+        <span class="eyebrow mono">// COMING NEXT</span>
+        <h2>The roadmap, in priority order.</h2>
+      </div>
+      <div class="roadmap-list reveal-stagger">
+        <div class="roadmap-item reveal">
+          <span class="roadmap-priority mono">01</span>
+          <div><h4>CI-native triggers</h4><p>Machine API tokens (today's auth is user JWT), a GitHub Actions snippet, and webhooks back to the PR with pass/fail status.</p></div>
+        </div>
+        <div class="roadmap-item reveal">
+          <span class="roadmap-priority mono">02</span>
+          <div><h4>First-class test-type tags</h4><p>Smoke / sanity / regression as a field on suites, with "run all smoke" as one dispatch.</p></div>
+        </div>
+        <div class="roadmap-item reveal">
+          <span class="roadmap-priority mono">03</span>
+          <div><h4>Scheduled runs</h4><p>Nightly regression without a human clicking anything.</p></div>
+        </div>
+        <div class="roadmap-item reveal">
+          <span class="roadmap-priority mono">04</span>
+          <div><h4>Multi-agent parallelism</h4><p>Fan a pack out across agents, or target a named agent per suite.</p></div>
+        </div>
+        <div class="roadmap-item reveal">
+          <span class="roadmap-priority mono">05</span>
+          <div><h4>Environment configs</h4><p>Per-run target environment selection — staging or production URL sets.</p></div>
+        </div>
+        <div class="roadmap-item reveal">
+          <span class="roadmap-priority mono">06</span>
+          <div><h4>iOS automation</h4><p>The Appium adapter was deliberately built to extend from Android to iOS.</p></div>
+        </div>
+        <div class="roadmap-item reveal">
+          <span class="roadmap-priority mono">07</span>
+          <div><h4>Flaky-trend intelligence</h4><p>Aggregate the existing per-failure flaky/real-bug classification into a flakiness score over time.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HONEST GAPS -->
+  <section>
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="eyebrow mono">// WHERE WE ARE TODAY</span>
+        <h2>The honest current gaps.</h2>
+        <p>We'd rather tell you what's not built yet than have you find out mid-engagement.</p>
+      </div>
+      <div class="gaps-list reveal-stagger">
+        <div class="gaps-item reveal"><span class="mark">▲</span>Test types are a suite-naming convention today, not a field — see roadmap #2.</div>
+        <div class="gaps-item reveal"><span class="mark">▲</span>CI dispatch works but authenticates as a user, not a machine token yet — see roadmap #1.</div>
+        <div class="gaps-item reveal"><span class="mark">▲</span>No scheduler yet — every run is human- or API-triggered — see roadmap #3.</div>
+        <div class="gaps-item reveal"><span class="mark">▲</span>One agent per run today — no parallel fan-out yet — see roadmap #4.</div>
+        <div class="gaps-item reveal"><span class="mark">▲</span>Android only on mobile — iOS is a planned framework extension — see roadmap #6.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="contact" class="cta-section">
+    <div class="container inner reveal">
+      <span class="eyebrow mono">// START HERE</span>
+      <h2>Ship your first build.</h2>
+      <p>Point Pulse at a URL, upload an APK, or drop in an FRS document. Watch the test hierarchy build itself.</p>
+      <a href="mailto:pulse@shilohgroup.co.za" class="btn-primary">Get Started →</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-back">
+      <span>Shiloh Test's QA product, from</span>
+      <a href="index.html">Shiloh Destiny Industries →</a>
+    </div>
+    <div class="footer-meta">© 2026 SHILOH PULSE · SHILOH TEST · A SHILOH DESTINY INDUSTRIES PRODUCT</div>
+  </div>
+</footer>
+
+<script>
+  // Mobile menu toggle
+  (function(){
+    const btn = document.getElementById('hamburgerBtn');
+    const menu = document.getElementById('mobileMenu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function(){
+      btn.classList.toggle('open');
+      menu.classList.toggle('open');
+    });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        btn.classList.remove('open');
+        menu.classList.remove('open');
+      });
+    });
+  })();
+
+  // Scroll reveal
+  (function(){
+    const observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(function(el){ observer.observe(el); });
+  })();
+
+  // Generation → Execution → Reporting — a build passes through three gates
+  (function(){
+    const canvas = document.getElementById('pipeline3Canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const stageGen = document.getElementById('p3StageGen');
+    const stageExec = document.getElementById('p3StageExec');
+    const stageReport = document.getElementById('p3StageReport');
+    const stageEls = [stageGen, stageExec, stageReport];
+
+    let W = 0, H = 0;
+    function resize(){
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = rect.width; H = rect.height;
+      if (W === 0 || H === 0) return;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const s = 0.15;
+    const cubeVerts = [
+      [-s,-s,-s],[s,-s,-s],[s,s,-s],[-s,s,-s],
+      [-s,-s, s],[s,-s, s],[s,s, s],[-s,s, s]
+    ];
+    const cubeEdges = [
+      [0,1],[1,2],[2,3],[3,0],
+      [4,5],[5,6],[6,7],[7,4],
+      [0,4],[1,5],[2,6],[3,7]
+    ];
+
+    const GATE_R = 0.42;
+    const GATE_SEGMENTS = 30;
+    function gatePointsAt(gx){
+      const pts = [];
+      for (let i = 0; i < GATE_SEGMENTS; i++){
+        const theta = (i / GATE_SEGMENTS) * Math.PI * 2;
+        pts.push([gx, GATE_R * Math.cos(theta), GATE_R * Math.sin(theta)]);
+      }
+      return pts;
+    }
+
+    const tilt = 0.3;
+    const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+    const yaw = 0.46;
+    const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+
+    function project(x, y, z, cx, cy, unit, focal){
+      const x1 = x * cosY + z * sinY;
+      const z1 = -x * sinY + z * cosY;
+      const y2 = y * cosT - z1 * sinT;
+      const z2 = y * sinT + z1 * cosT;
+      const camZ = z2 + focal;
+      const scale = focal / camZ;
+      return { sx: cx + x1 * unit * scale, sy: cy - y2 * unit * scale };
+    }
+
+    const GATES = [-0.85, 0, 0.85];
+    const GATE_LABELS = ['Generation', 'Execution', 'Reporting'];
+    const GATE_THRESHOLD = 0.15;
+    const TRAVEL = 1.7;
+    const SPEED = 0.28;
+
+    const STAGE_COLORS = [
+      [110, 135, 165],
+      [37, 150, 230],
+      [34, 225, 225],
+      [16, 185, 129]
+    ];
+
+    const box = { x: -TRAVEL, spin: 0, stage: 0, stageAt: 0 };
+    let gateFired = [false, false, false];
+    const particles = [];
+    let t = 0;
+    let lastTime = null;
+
+    function spawnBurst(sx, sy){
+      for (let i = 0; i < 14; i++){
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 0.5 + Math.random() * 1.2;
+        particles.push({ x: sx, y: sy, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1 });
+      }
+    }
+
+    function updateStages(){
+      const activeIdx = Math.min(box.stage, 2);
+      stageEls.forEach(function(el, i){ if (el) el.classList.toggle('is-active', i === activeIdx); });
+    }
+
+    function draw(dt){
+      if (W === 0 || H === 0) { resize(); }
+      ctx.clearRect(0, 0, W, H);
+      const cx = W * 0.5, cy = H * 0.55;
+      const unit = Math.min(W / 3.6, H / 1.3);
+      const focal = 3.0;
+
+      const leftP = project(-TRAVEL, 0, 0, cx, cy, unit, focal);
+      const rightP = project(TRAVEL, 0, 0, cx, cy, unit, focal);
+      ctx.strokeStyle = 'rgba(159,180,196,0.12)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(leftP.sx, leftP.sy);
+      ctx.lineTo(rightP.sx, rightP.sy);
+      ctx.stroke();
+
+      GATES.forEach(function(gx, gi){
+        const pts = gatePointsAt(gx).map(function(p){ return project(p[0], p[1], p[2], cx, cy, unit, focal); });
+        ctx.strokeStyle = 'rgba(34,225,225,0.35)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        pts.forEach(function(p, i){ if (i === 0) ctx.moveTo(p.sx, p.sy); else ctx.lineTo(p.sx, p.sy); });
+        ctx.closePath();
+        ctx.stroke();
+
+        const sweepStart = (t * 0.5 + gi * 2.1) % (Math.PI * 2);
+        const sweepLen = Math.PI * 0.3;
+        ctx.strokeStyle = 'rgba(34,225,225,0.85)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let a = sweepStart; a < sweepStart + sweepLen; a += 0.1){
+          const p = project(gx, GATE_R * Math.cos(a), GATE_R * Math.sin(a), cx, cy, unit, focal);
+          if (a === sweepStart) ctx.moveTo(p.sx, p.sy); else ctx.lineTo(p.sx, p.sy);
+        }
+        ctx.stroke();
+
+        const labelP = project(gx, GATE_R + 0.22, 0, cx, cy, unit, focal);
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = box.stage > gi ? 'rgba(34,225,225,0.8)' : 'rgba(92,116,136,0.7)';
+        ctx.fillText(GATE_LABELS[gi], labelP.sx, labelP.sy);
+      });
+
+      box.x += SPEED * dt;
+      box.spin += dt * 0.7;
+      GATES.forEach(function(gx, gi){
+        if (Math.abs(box.x - gx) < GATE_THRESHOLD && !gateFired[gi]){
+          gateFired[gi] = true;
+          box.stage = gi + 1;
+          box.stageAt = t;
+          const gc = project(gx, 0, 0, cx, cy, unit, focal);
+          spawnBurst(gc.sx, gc.sy);
+        }
+      });
+      if (box.x > TRAVEL){
+        box.x = -TRAVEL; box.stage = 0; box.stageAt = 0;
+        gateFired = [false, false, false];
+      }
+      updateStages();
+
+      for (let i = particles.length - 1; i >= 0; i--){
+        const p = particles[i];
+        p.x += p.vx * dt * 28; p.y += p.vy * dt * 28; p.life -= dt * 1.7;
+        if (p.life <= 0){ particles.splice(i, 1); continue; }
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(34,225,225,' + Math.max(0, p.life * 0.8).toFixed(3) + ')';
+        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const cosS = Math.cos(box.spin), sinS = Math.sin(box.spin);
+      const worldVerts = cubeVerts.map(function(v){
+        const vx = v[0] * cosS + v[2] * sinS;
+        const vz = -v[0] * sinS + v[2] * cosS;
+        return [vx + box.x, v[1], vz];
+      });
+      const boxProj = worldVerts.map(function(v){ return project(v[0], v[1], v[2], cx, cy, unit, focal); });
+
+      const fadeT = box.stage > 0 ? Math.min(1, (t - box.stageAt) * 2.2) : 1;
+      const fromC = STAGE_COLORS[Math.max(0, box.stage - 1)];
+      const toC = STAGE_COLORS[box.stage];
+      const r = Math.round(fromC[0] + (toC[0] - fromC[0]) * fadeT);
+      const g = Math.round(fromC[1] + (toC[1] - fromC[1]) * fadeT);
+      const b = Math.round(fromC[2] + (toC[2] - fromC[2]) * fadeT);
+      const alpha = 0.4 + (box.stage / 3) * 0.5;
+      ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + alpha.toFixed(3) + ')';
+      ctx.lineWidth = 1.6;
+      if (box.stage >= 2){ ctx.shadowColor = 'rgba(34,225,225,0.55)'; ctx.shadowBlur = 12; }
+      cubeEdges.forEach(function(e){
+        const a = boxProj[e[0]], b2 = boxProj[e[1]];
+        ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b2.sx, b2.sy); ctx.stroke();
+      });
+      ctx.shadowBlur = 0;
+
+      if (box.stage === 3){
+        const checkFade = Math.min(1, (t - box.stageAt) * 2.2);
+        const top = project(box.x, s + 0.2, 0, cx, cy, unit, focal);
+        ctx.save();
+        ctx.globalAlpha = checkFade;
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(top.sx - 4.5, top.sy);
+        ctx.lineTo(top.sx - 1.2, top.sy + 3.5);
+        ctx.lineTo(top.sx + 5.5, top.sy - 4.5);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      t += dt;
+    }
+
+    function frame(now){
+      if (lastTime === null) lastTime = now;
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+      draw(dt);
+      requestAnimationFrame(frame);
+    }
+
+    if (reduceMotion){
+      box.x = 0; box.stage = 2; box.stageAt = -10; gateFired = [true, true, false];
+      draw(0);
+    } else {
+      requestAnimationFrame(frame);
+    }
+  })();
+
+  // Phone mockup — notifications arrive one by one when scrolled into view
+  (function(){
+    const frame = document.getElementById('phoneFrame');
+    const notifs = document.querySelectorAll('#phoneNotifs .phone-notif');
+    if (!frame || !notifs.length) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      notifs.forEach(function(n){ n.classList.add('is-in'); });
+      return;
+    }
+
+    const observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) {
+          notifs.forEach(function(n, i){
+            setTimeout(function(){ n.classList.add('is-in'); }, i * 450);
+          });
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+
+    observer.observe(frame);
+  })();
+
+  // App tour — phone carousel cycling through real in-app screens
+  (function(){
+    const frame = document.getElementById('appTourFrame');
+    const slides = document.querySelectorAll('#appTourScreen .pui-slide');
+    const dots = document.querySelectorAll('#appTourPager button');
+    const caption = document.getElementById('appTourCaption');
+    if (!frame || !slides.length || !dots.length) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let current = 0;
+    let timer = null;
+
+    function goTo(i){
+      current = i;
+      slides.forEach(function(s, idx){ s.classList.toggle('is-active', idx === i); });
+      dots.forEach(function(d, idx){
+        const active = idx === i;
+        d.classList.toggle('active', active);
+        d.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      if (caption) caption.textContent = slides[i].getAttribute('data-label') || '';
+    }
+
+    function next(){ goTo((current + 1) % slides.length); }
+
+    function startTimer(){
+      if (reduceMotion) return;
+      timer = setInterval(next, 4200);
+    }
+    function stopTimer(){
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    dots.forEach(function(dot, idx){
+      dot.addEventListener('click', function(){
+        stopTimer();
+        goTo(idx);
+        startTimer();
+      });
+    });
+
+    frame.addEventListener('mouseenter', stopTimer);
+    frame.addEventListener('mouseleave', startTimer);
+
+    goTo(0);
+    startTimer();
+  })();
+
+  // Hero 3D scepter — the Shiloh mark rotating in true wireframe depth
+  (function(){
+    const canvas = document.getElementById('heroScepter');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let W = 0, H = 0;
+    function resize(){
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = rect.width; H = rect.height;
+      if (W === 0 || H === 0) return;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const edges = [];
+    function edge(a, b){ edges.push([a[0],a[1],a[2],b[0],b[1],b[2]]); }
+    function octahedron(ox, oy, oz, s){
+      const v = [[s,0,0],[-s,0,0],[0,s,0],[0,-s,0],[0,0,s],[0,0,-s]]
+        .map(function(p){ return [ox+p[0], oy+p[1], oz+p[2]]; });
+      [[0,2],[0,3],[0,4],[0,5],[1,2],[1,3],[1,4],[1,5],[2,4],[2,5],[3,4],[3,5]]
+        .forEach(function(e){ edge(v[e[0]], v[e[1]]); });
+    }
+
+    // head ring — a band with two rims and spokes
+    const RING_R = 0.34, RING_Y = 0.55, RIM_Z = 0.05, SEG = 40;
+    [-RIM_Z, RIM_Z].forEach(function(z){
+      for (let i = 0; i < SEG; i++){
+        const a1 = (i / SEG) * Math.PI * 2, a2 = ((i + 1) / SEG) * Math.PI * 2;
+        edge([RING_R*Math.cos(a1), RING_Y + RING_R*Math.sin(a1), z],
+             [RING_R*Math.cos(a2), RING_Y + RING_R*Math.sin(a2), z]);
+      }
+    });
+    for (let i = 0; i < SEG; i += 5){
+      const a = (i / SEG) * Math.PI * 2;
+      edge([RING_R*Math.cos(a), RING_Y + RING_R*Math.sin(a), -RIM_Z],
+           [RING_R*Math.cos(a), RING_Y + RING_R*Math.sin(a), RIM_Z]);
+    }
+
+    // diamond at the ring's centre
+    octahedron(0, RING_Y, 0, 0.16);
+
+    // staff — slim square prism from the ring down
+    const SW = 0.038, TOP = RING_Y - RING_R, BOT = -0.72;
+    const sq = [[SW,SW],[SW,-SW],[-SW,-SW],[-SW,SW]];
+    sq.forEach(function(p, i){
+      const q = sq[(i+1)%4];
+      edge([p[0], TOP, p[1]], [p[0], BOT, p[1]]);
+      edge([p[0], TOP, p[1]], [q[0], TOP, q[1]]);
+      edge([p[0], BOT, p[1]], [q[0], BOT, q[1]]);
+    });
+
+    // collar — two horizontal rings around the staff
+    [0.10, 0.045].forEach(function(cy0){
+      const CR = 0.105, CSEG = 24;
+      for (let i = 0; i < CSEG; i++){
+        const a1 = (i / CSEG) * Math.PI * 2, a2 = ((i + 1) / CSEG) * Math.PI * 2;
+        edge([CR*Math.cos(a1), cy0, CR*Math.sin(a1)],
+             [CR*Math.cos(a2), cy0, CR*Math.sin(a2)]);
+      }
+    });
+
+    // pommel — a small diamond at the foot
+    octahedron(0, -0.80, 0, 0.075);
+
+    const tilt = 0.16;
+    const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+    let yaw = 0.6;
+
+    function draw(){
+      if (W === 0 || H === 0){ resize(); }
+      ctx.clearRect(0, 0, W, H);
+      const cx = W * 0.5, cy = H * 0.5;
+      const unit = Math.min(W * 1.15, H * 0.52);
+      const focal = 3.2;
+      const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+
+      for (let i = 0; i < edges.length; i++){
+        const e = edges[i];
+        const xa = e[0]*cosY + e[2]*sinY, za = -e[0]*sinY + e[2]*cosY;
+        const ya = e[1]*cosT - za*sinT, zza = e[1]*sinT + za*cosT;
+        const sa = focal / (focal + zza);
+        const xb = e[3]*cosY + e[5]*sinY, zb = -e[3]*sinY + e[5]*cosY;
+        const yb = e[4]*cosT - zb*sinT, zzb = e[4]*sinT + zb*cosT;
+        const sb = focal / (focal + zzb);
+
+        const t = Math.max(0, Math.min(1, 0.5 - (zza + zzb) * 0.9));
+        const r = (22 + 38*t)|0, g = (130 + 105*t)|0, b = (170 + 65*t)|0;
+        ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (0.07 + t*0.30).toFixed(3) + ')';
+        ctx.lineWidth = 1 + t * 0.6;
+        ctx.beginPath();
+        ctx.moveTo(cx + xa*unit*sa, cy - ya*unit*sa);
+        ctx.lineTo(cx + xb*unit*sb, cy - yb*unit*sb);
+        ctx.stroke();
+      }
+    }
+
+    function tick(){
+      yaw += 0.0035;
+      draw();
+      requestAnimationFrame(tick);
+    }
+
+    if (reduceMotion){ draw(); } else { requestAnimationFrame(tick); }
+  })();
+</script>
+
+</body>
+</html>

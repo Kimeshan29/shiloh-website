@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shiloh Destiny Industries — South African Technology Group</title>
+<meta name="description" content="Shiloh Destiny Industries is a South African technology group. Shiloh Dev builds the software, Shiloh Team staffs the gaps, and Shiloh Test — home to Shiloh Pulse — makes sure it ships clean.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='28' y2='28' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%2322D3EE'/%3E%3Cstop offset='1' stop-color='%2322E5E5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='14' cy='8.3' r='4.4' fill='none' stroke='url(%23g)' stroke-width='1.3'/%3E%3Crect x='12.4' y='6.7' width='3.2' height='3.2' transform='rotate(45 14 8.3)' fill='url(%23g)'/%3E%3Crect x='13.4' y='12.7' width='1.2' height='11.4' rx='0.6' fill='url(%23g)'/%3E%3Crect x='12.4' y='13.8' width='3.2' height='1' rx='0.5' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050A12;
+    --surface:#0A121D;
+    --surface-2:#0F1A28;
+    --border:#1C2B3A;
+    --border-glow:rgba(34,225,225,0.35);
+
+    --blue:#22D3EE;
+    --blue-light:#2DD4E8;
+    --cyan:#22E5E5;
+    --purple:#8B5CF6;
+    --green:#10B981;
+
+    --text:#F1FAFC;
+    --text-sub:#9FB4C4;
+    --text-muted:#5C7488;
+
+    --display: clamp(52px, 7vw, 96px);
+    --h1: clamp(36px, 5vw, 64px);
+    --h2: clamp(24px, 3vw, 40px);
+    --h3: 18px;
+    --body: 16px;
+    --small: 13px;
+    --mono: 13px;
+
+    --space-2:2px; --space-4:4px; --space-8:8px;
+    --space-16:16px; --space-24:24px; --space-32:32px;
+    --space-48:48px; --space-64:64px; --space-96:96px; --space-128:128px;
+
+    --radius-sm:6px; --radius:10px; --radius-lg:16px; --radius-xl:24px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:400;
+    line-height:1.5;
+    overflow-x:hidden;
+    overflow-y:visible;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+  button{ font-family:inherit; cursor:pointer; }
+
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .container{
+    max-width:1200px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  @media (max-width:640px){
+    .container{ padding:0 20px; }
+  }
+
+  /* ---------- Reveal animations ---------- */
+  .reveal{
+    opacity:0;
+    transform:translateY(24px);
+    transition:opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  /* ---------- Triangle helper ---------- */
+  .tri{
+    display:inline-block;
+    width:0; height:0;
+  }
+
+  /* ---------- Navigation ---------- */
+  header.nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    height:64px;
+    z-index:1000;
+    background:rgba(5,10,18,0.75);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border);
+  }
+
+  .nav-inner{
+    max-width:1200px;
+    margin:0 auto;
+    height:64px;
+    padding:0 32px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .brand-mark{
+    width:18px; height:18px;
+    flex-shrink:0;
+  }
+
+  .brand-word{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:0.15em;
+    color:var(--text);
+  }
+
+  .nav-links{
+    display:flex;
+    align-items:center;
+    gap:36px;
+  }
+
+  .nav-links a{
+    font-size:13px;
+    font-weight:500;
+    color:var(--text-muted);
+    transition:color 0.2s ease;
+  }
+  .nav-links a:hover{ color:var(--text); }
+
+  .nav-cta{
+    border:1px solid var(--border-glow);
+    background:transparent;
+    color:var(--blue-light);
+    padding:8px 20px;
+    border-radius:6px;
+    font-size:13px;
+    font-weight:500;
+    transition:background 0.2s ease;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{ background:rgba(37,99,235,0.12); }
+
+  .hamburger{
+    display:none;
+    flex-direction:column;
+    gap:5px;
+    background:none;
+    border:none;
+    padding:8px;
+  }
+  .hamburger span{
+    width:22px; height:2px;
+    background:var(--text);
+    transition:transform 0.3s ease, opacity 0.3s ease;
+  }
+  .hamburger.open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2){ opacity:0; }
+  .hamburger.open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+
+  .mobile-menu{
+    position:fixed;
+    top:64px; left:0; right:0;
+    background:var(--surface);
+    border-bottom:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    padding:16px 20px 24px;
+    gap:4px;
+    transform:translateY(-120%);
+    transition:transform 0.35s ease;
+    z-index:999;
+  }
+  .mobile-menu.open{ transform:translateY(0); }
+  .mobile-menu a{
+    padding:14px 4px;
+    font-size:15px;
+    color:var(--text-sub);
+    border-bottom:1px solid var(--border);
+  }
+  .mobile-menu .nav-cta{
+    margin-top:12px;
+    text-align:center;
+  }
+
+  @media (max-width:900px){
+    .nav-links{ display:none; }
+    .hamburger{ display:flex; }
+  }
+  @media (min-width:901px){
+    .mobile-menu{ display:none; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    background:var(--bg);
+    overflow:hidden;
+    padding-top:140px;
+    padding-bottom:80px;
+  }
+
+  .hero::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:radial-gradient(ellipse 80% 50% at 50% 100%, rgba(34,225,225,0.14) 0%, transparent 60%);
+    pointer-events:none;
+  }
+
+  .hero::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none;
+  }
+
+  .hero-scanlines{
+    position:absolute;
+    inset:0;
+    background:repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px);
+    pointer-events:none;
+  }
+
+  .hero-sphere{
+    position:absolute;
+    top:50%;
+    right:-6%;
+    transform:translateY(-50%);
+    width:min(64vw, 980px);
+    height:min(64vw, 980px);
+    pointer-events:none;
+  }
+  @media (max-width:900px){
+    .hero-sphere{ opacity:0.5; right:-30%; }
+  }
+
+  .hero-content{
+    position:relative;
+    z-index:2;
+    max-width:900px;
+    margin:0 auto;
+    padding:0 32px;
+    text-align:left;
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--cyan);
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    margin-bottom:24px;
+    display:block;
+  }
+
+  .hero-headline{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:var(--display);
+    font-weight:300;
+    line-height:1.05;
+    color:var(--text);
+  }
+
+  .hero-headline .word{
+    display:inline-block;
+    opacity:0;
+    transform:translateY(24px);
+    animation:wordUp 0.7s ease forwards;
+  }
+
+  @keyframes wordUp{
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .hero-sub{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:20px;
+    font-weight:400;
+    color:var(--text-sub);
+    max-width:640px;
+    margin-top:24px;
+    opacity:0;
+    transform:translateY(16px);
+    animation:fadeUp 0.7s ease forwards;
+    animation-delay:0.55s;
+  }
+
+  @keyframes fadeUp{
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .hero-ctas{
+    margin-top:48px;
+    display:flex;
+    align-items:center;
+    gap:28px;
+    flex-wrap:wrap;
+    opacity:0;
+    transform:translateY(16px);
+    animation:fadeUp 0.7s ease forwards;
+    animation-delay:0.85s;
+  }
+
+  .btn-primary{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:14px 28px;
+    font-size:16px;
+    font-weight:600;
+    color:#04141A;
+    border-radius:8px;
+    border:1px solid var(--cyan);
+    background:var(--cyan);
+    transition:box-shadow 0.3s ease, transform 0.2s ease;
+  }
+  .btn-primary:hover{
+    box-shadow:0 0 40px rgba(34,225,225,0.3), 0 0 80px rgba(34,225,225,0.15);
+    transform:translateY(-1px);
+  }
+
+  .btn-secondary{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    color:var(--cyan);
+    font-size:15px;
+    font-weight:500;
+    border-bottom:1px solid transparent;
+    transition:border-color 0.2s ease;
+  }
+  .btn-secondary:hover{ border-color:var(--cyan); }
+
+  .hero-stats{
+    margin-top:80px;
+    display:flex;
+    align-items:center;
+    gap:24px;
+    flex-wrap:wrap;
+    opacity:0;
+    transform:translateY(16px);
+    animation:fadeUp 0.7s ease forwards;
+    animation-delay:1.1s;
+  }
+  .hero-stats .stat{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--text-muted);
+  }
+  .hero-stats .divider{
+    width:1px; height:14px;
+    background:var(--border);
+  }
+
+  .scroll-indicator{
+    position:absolute;
+    bottom:32px;
+    left:50%;
+    transform:translateX(-50%);
+    color:var(--text-muted);
+    animation:bounce 2s ease-in-out infinite;
+    z-index:2;
+  }
+  @keyframes bounce{
+    0%,100%{ transform:translateX(-50%) translateY(0); }
+    50%{ transform:translateX(-50%) translateY(8px); }
+  }
+
+  /* ---------- Sections generic ---------- */
+  section{
+    position:relative;
+    padding:var(--space-128) 0;
+  }
+  @media (max-width:640px){
+    section{ padding:64px 0; }
+  }
+
+  .section-header{
+    max-width:640px;
+    margin:0 auto var(--space-64);
+    text-align:center;
+  }
+  .section-header .eyebrow{ text-align:center; }
+  .section-header h2{
+    font-size:var(--h1);
+    font-weight:300;
+    line-height:1.1;
+    color:var(--text);
+  }
+  .section-header p{
+    font-size:17px;
+    color:var(--text-sub);
+    margin-top:20px;
+    line-height:1.6;
+  }
+
+  /* ---------- Our Products ---------- */
+  .products-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:24px;
+  }
+  @media (max-width:1100px){
+    .products-grid{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:700px){
+    .products-grid{ grid-template-columns:1fr; }
+  }
+  .product-card{
+    background:var(--surface);
+    border:1px solid transparent;
+    background-image:
+      linear-gradient(var(--surface), var(--surface)),
+      linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+    background-origin:border-box;
+    background-clip:padding-box, border-box;
+    border-radius:var(--radius-lg);
+    padding:32px 28px;
+    display:flex;
+    flex-direction:column;
+    transition:transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .product-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 0 40px rgba(34,225,225,0.12);
+  }
+  .product-icon{
+    width:116px; height:94px;
+    display:block;
+    margin-bottom:14px;
+  }
+  .product-card .eyebrow{ margin-bottom:16px; }
+  .product-card h3{
+    font-size:28px;
+    font-weight:300;
+    color:var(--text);
+    margin-bottom:14px;
+  }
+  .product-card .product-pitch{
+    font-size:15px;
+    color:var(--text-sub);
+    line-height:1.7;
+    margin-bottom:24px;
+  }
+  .product-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:28px;
+  }
+  .product-list li{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    font-size:13.5px;
+    color:var(--text-sub);
+  }
+  .product-list .bullet{
+    width:6px; height:6px;
+    margin-top:6px;
+    flex-shrink:0;
+    background:var(--cyan);
+    transform:rotate(45deg);
+  }
+  .product-link{
+    margin-top:auto;
+    color:var(--cyan);
+    font-size:15px;
+    font-weight:500;
+    border-bottom:1px solid transparent;
+    transition:border-color 0.2s ease;
+  }
+  .product-link:hover{ border-color:var(--cyan); }
+
+  /* ---------- CTA section ---------- */
+  .cta-section{
+    text-align:center;
+    background:var(--bg);
+    position:relative;
+    overflow:hidden;
+  }
+  .cta-section::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:radial-gradient(ellipse 70% 60% at 50% 50%, rgba(34,225,225,0.14) 0%, transparent 65%);
+    pointer-events:none;
+  }
+  .cta-section .inner{ position:relative; z-index:2; }
+  .cta-section h2{
+    font-size:var(--display);
+    font-weight:300;
+    line-height:1.08;
+    margin:20px 0 20px;
+  }
+  .cta-section p{
+    font-size:18px;
+    color:var(--text-sub);
+    max-width:480px;
+    margin:0 auto 40px;
+  }
+  .cta-email{
+    display:block;
+    margin-top:16px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    color:var(--text-muted);
+  }
+  .cta-email a{ color:var(--blue-light); }
+
+  /* ---------- Footer ---------- */
+  footer{
+    background:#03060B;
+    border-top:1px solid var(--border);
+    padding:56px 0 32px;
+  }
+  .footer-inner{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:32px;
+    align-items:start;
+  }
+  @media (max-width:768px){
+    .footer-inner{ grid-template-columns:1fr; text-align:center; gap:24px; }
+  }
+  .footer-tagline{
+    color:var(--text-muted);
+    font-size:12px;
+    line-height:1.6;
+    max-width:280px;
+    margin-top:10px;
+  }
+  .footer-links{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  @media (max-width:768px){
+    .footer-links{ align-items:center; }
+  }
+  .footer-links a{
+    color:var(--text-muted);
+    font-size:12px;
+  }
+  .footer-meta{
+    text-align:right;
+    color:var(--text-muted);
+    font-size:12px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  @media (max-width:768px){
+    .footer-meta{ text-align:center; }
+  }
+
+  /* stagger children */
+  .reveal-stagger .reveal:nth-child(1){ transition-delay:0ms; }
+  .reveal-stagger .reveal:nth-child(2){ transition-delay:80ms; }
+  .reveal-stagger .reveal:nth-child(3){ transition-delay:160ms; }
+  .reveal-stagger .reveal:nth-child(4){ transition-delay:240ms; }
+  .reveal-stagger .reveal:nth-child(5){ transition-delay:320ms; }
+  .reveal-stagger .reveal:nth-child(6){ transition-delay:400ms; }
+  .reveal-stagger .reveal:nth-child(7){ transition-delay:480ms; }
+  .reveal-stagger .reveal:nth-child(8){ transition-delay:560ms; }
+  .reveal-stagger .reveal:nth-child(9){ transition-delay:640ms; }
+  .reveal-stagger .reveal:nth-child(10){ transition-delay:720ms; }
+
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="#" class="brand">
+      <svg class="brand-mark" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#22D3EE"/>
+            <stop offset="1" stop-color="#22E5E5"/>
+          </linearGradient>
+        </defs>
+        <circle cx="14" cy="8.3" r="4.4" fill="none" stroke="url(#logoGrad)" stroke-width="1.3"/>
+        <rect x="12.4" y="6.7" width="3.2" height="3.2" transform="rotate(45 14 8.3)" fill="url(#logoGrad)"/>
+        <rect x="13.4" y="12.7" width="1.2" height="11.4" rx="0.6" fill="url(#logoGrad)"/>
+        <rect x="12.4" y="13.8" width="3.2" height="1" rx="0.5" fill="url(#logoGrad)"/>
+      </svg>
+      <span class="brand-word">SHILOH</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#products">What We Build</a>
+      <a href="portal.html">Shiloh Team ↗</a>
+      <a href="pulse.html">Shiloh Pulse ↗</a>
+    </nav>
+    <a href="#products" class="nav-cta" style="display:inline-block;">Our Products</a>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#products">What We Build</a>
+    <a href="portal.html">Shiloh Team ↗</a>
+    <a href="pulse.html">Shiloh Pulse ↗</a>
+    <a href="#products" class="nav-cta">Our Products</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-scanlines"></div>
+    <canvas class="hero-sphere" id="heroSphere" aria-hidden="true"></canvas>
+    <div class="hero-content">
+      <span class="eyebrow mono">// SHILOH DESTINY INDUSTRIES · EST 2025 . DURBAN, ZA</span>
+      <h1 class="hero-headline" id="heroHeadline"></h1>
+      <p class="hero-sub">Shiloh Destiny Industries is a South African technology group. Shiloh Dev builds the software. Shiloh Team staffs the gaps. Shiloh Test — home to Shiloh Pulse — makes sure it ships clean.</p>
+      <div class="hero-ctas">
+        <a href="#products" class="btn-primary">See What We Build →</a>
+      </div>
+      <div class="hero-stats">
+        <span class="stat mono">Shiloh Dev</span>
+        <span class="divider"></span>
+        <span class="stat mono">Shiloh Team</span>
+        <span class="divider"></span>
+        <span class="stat mono">Shiloh Test</span>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M1 1L10 10L19 1" stroke="currentColor" stroke-width="1.5"/></svg>
+    </div>
+  </section>
+
+  <!-- OUR PRODUCTS -->
+  <section id="products">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="eyebrow mono">// WHAT WE BUILD</span>
+        <h2>Many products. One technology group.</h2>
+        <p>Everything Shiloh Destiny Industries builds lives under one roof — and we're expanding.</p>
+      </div>
+      <div class="products-grid reveal-stagger">
+        <div class="product-card reveal">
+          <canvas class="product-icon" id="prodIconDev" aria-hidden="true"></canvas>
+          <span class="eyebrow mono">// SOFTWARE DEVELOPMENT FACTORY</span>
+          <h3>Shiloh Dev</h3>
+          <p class="product-pitch">Our software development factory. Apps, web applications, and large-scale systems — built end to end, not just staffed. From a single product to a full engineering build.</p>
+          <ul class="product-list">
+            <li><span class="bullet"></span> Mobile and web apps, designed and shipped</li>
+            <li><span class="bullet"></span> Large-scale systems built for real production load</li>
+            <li><span class="bullet"></span> Full-stack teams assembled around your roadmap</li>
+          </ul>
+          <a href="mailto:hello@shilohgroup.co.za" class="product-link">Start a Project →</a>
+        </div>
+        <div class="product-card reveal">
+          <canvas class="product-icon" id="prodIconTeam" aria-hidden="true"></canvas>
+          <span class="eyebrow mono">// RESOURCING</span>
+          <h3>Shiloh Team</h3>
+          <p class="product-pitch">Need to fill a gap, not build from scratch? Shiloh Team is our bench of vetted technology consultants, sourced from South Africa and beyond — searchable by discipline, seniority, and rate, ready for full-time, part-time, or project-based work.</p>
+          <ul class="product-list">
+            <li><span class="bullet"></span> 100% vetted before you ever see a profile</li>
+            <li><span class="bullet"></span> Transparent day-rate bands, full-time to project-based</li>
+            <li><span class="bullet"></span> One named account owner from enquiry to placement</li>
+          </ul>
+          <a href="portal.html" class="product-link">Explore Shiloh Team →</a>
+        </div>
+        <div class="product-card reveal">
+          <canvas class="product-icon" id="prodIconTest" aria-hidden="true"></canvas>
+          <span class="eyebrow mono">// QA FACTORY</span>
+          <h3>Shiloh Test</h3>
+          <p class="product-pitch">Our QA factory. Shiloh Pulse, our AI-driven testing product, takes a build in and hands back evidence: ship it a URL, an APK, an FRS document, or just screenshots, and AI drafts the test cases, runs them, and reports back — with a root cause and a confidence score on every failure.</p>
+          <ul class="product-list">
+            <li><span class="bullet"></span> Multi-modal AI generation, no setup gate</li>
+            <li><span class="bullet"></span> One-click automated runs with live screenshots</li>
+            <li><span class="bullet"></span> Executive reports and a coverage dashboard, automatically</li>
+          </ul>
+          <a href="pulse.html" class="product-link">Explore Shiloh Pulse →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="contact" class="cta-section">
+    <div class="container inner reveal">
+      <span class="eyebrow mono">// GET STARTED</span>
+      <h2>Build it, staff it, or test it.</h2>
+      <p>Whichever one you need, Shiloh Destiny Industries already has a team built for it.</p>
+      <div class="hero-ctas" style="justify-content:center; margin-top:0;">
+        <a href="mailto:hello@shilohgroup.co.za" class="btn-primary">Start a Project →</a>
+        <a href="portal.html" class="btn-secondary">Explore Shiloh Team →</a>
+        <a href="pulse.html" class="btn-secondary">Explore Shiloh Pulse →</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div>
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="8.3" r="4.4" fill="none" stroke="url(#logoGrad)" stroke-width="1.3"/>
+          <rect x="12.4" y="6.7" width="3.2" height="3.2" transform="rotate(45 14 8.3)" fill="url(#logoGrad)"/>
+          <rect x="13.4" y="12.7" width="1.2" height="11.4" rx="0.6" fill="url(#logoGrad)"/>
+          <rect x="12.4" y="13.8" width="3.2" height="1" rx="0.5" fill="url(#logoGrad)"/>
+        </svg>
+        <span class="brand-word">SHILOH</span>
+      </div>
+      <div class="footer-tagline">Shiloh Destiny Industries — a South African technology group. Shiloh Dev, Shiloh Team, and Shiloh Test. Est. Durban, ZA.</div>
+    </div>
+    <div class="footer-links">
+      <a href="#products">What We Build</a>
+      <a href="portal.html">Shiloh Team ↗</a>
+      <a href="pulse.html">Shiloh Pulse ↗</a>
+    </div>
+    <div class="footer-meta">
+      <span>© 2026 SHILOH DESTINY INDUSTRIES · ALL SYSTEMS NOMINAL</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Hero 3D wireframe sphere
+  (function(){
+    const canvas = document.getElementById('heroSphere');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let W = 0, H = 0;
+    function resize(){
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = rect.width; H = rect.height;
+      if (W === 0 || H === 0) return;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const LAT_STEPS = 13;
+    const LON_STEPS = 22;
+    const points = [];
+    for (let i = 0; i <= LAT_STEPS; i++){
+      const lat = (i / LAT_STEPS) * Math.PI - Math.PI / 2;
+      const row = [];
+      for (let j = 0; j <= LON_STEPS; j++){
+        const lon = (j / LON_STEPS) * Math.PI * 2;
+        row.push({
+          x: Math.cos(lat) * Math.cos(lon),
+          y: Math.sin(lat),
+          z: Math.cos(lat) * Math.sin(lon)
+        });
+      }
+      points.push(row);
+    }
+
+    const tilt = 0.4;
+    const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+    let angle = 0;
+
+    function project(p, cx, cy, radius, focal){
+      const cosA = Math.cos(angle), sinA = Math.sin(angle);
+      const x1 = p.x * cosA - p.z * sinA;
+      const z1 = p.x * sinA + p.z * cosA;
+      const y1 = p.y;
+      const y2 = y1 * cosT - z1 * sinT;
+      const z2 = y1 * sinT + z1 * cosT;
+      const x = x1 * radius, y = y2 * radius, z = z2 * radius;
+      const scale = focal / (focal + z);
+      return { sx: cx + x * scale, sy: cy + y * scale, z: z, scale: scale };
+    }
+
+    function depthColor(t, alphaBase, alphaRange){
+      const r = 22 + (60 - 22) * t;
+      const g = 130 + (235 - 130) * t;
+      const b = 170 + (235 - 170) * t;
+      const a = alphaBase + t * alphaRange;
+      return 'rgba(' + (r|0) + ',' + (g|0) + ',' + (b|0) + ',' + a.toFixed(3) + ')';
+    }
+
+    function draw(){
+      if (W === 0 || H === 0) { resize(); }
+      ctx.clearRect(0, 0, W, H);
+      const cx = W * 0.5, cy = H * 0.5;
+      const radius = Math.min(W, H) * 0.42;
+      const focal = radius * 2.6;
+
+      const proj = points.map(function(row){
+        return row.map(function(p){ return project(p, cx, cy, radius, focal); });
+      });
+
+      for (let i = 0; i <= LAT_STEPS; i++){
+        for (let j = 0; j < LON_STEPS; j++){
+          const a = proj[i][j], b = proj[i][j + 1];
+          const t = Math.max(0, Math.min(1, (a.z / radius + 1) / 2 * 0.6 + (b.z / radius + 1) / 2 * 0.4));
+          ctx.strokeStyle = depthColor(t, 0.05, 0.28);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(a.sx, a.sy);
+          ctx.lineTo(b.sx, b.sy);
+          ctx.stroke();
+        }
+      }
+      for (let j = 0; j <= LON_STEPS; j++){
+        for (let i = 0; i < LAT_STEPS; i++){
+          const a = proj[i][j], b = proj[i + 1][j];
+          const t = Math.max(0, Math.min(1, (a.z / radius + 1) / 2 * 0.6 + (b.z / radius + 1) / 2 * 0.4));
+          ctx.strokeStyle = depthColor(t, 0.05, 0.24);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(a.sx, a.sy);
+          ctx.lineTo(b.sx, b.sy);
+          ctx.stroke();
+        }
+      }
+      for (let i = 0; i <= LAT_STEPS; i += 2){
+        for (let j = 0; j < LON_STEPS; j += 2){
+          const p = proj[i][j];
+          const t = Math.max(0, Math.min(1, (p.z / radius + 1) / 2));
+          const r = 1.1 + t * 1.6;
+          ctx.beginPath();
+          ctx.fillStyle = depthColor(t, 0.15, 0.75);
+          ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    function frame(){
+      angle += 0.0022;
+      draw();
+      requestAnimationFrame(frame);
+    }
+
+    if (reduceMotion){
+      draw();
+    } else {
+      requestAnimationFrame(frame);
+    }
+  })();
+
+  // Hero headline word-by-word reveal
+  (function(){
+    const headline = document.getElementById('heroHeadline');
+    const lines = ["We build it.", "We staff it.", "We test it."];
+    let delay = 0;
+    lines.forEach((line, li) => {
+      const words = line.split(' ');
+      words.forEach((w, wi) => {
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.style.animationDelay = delay + 'ms';
+        span.textContent = w;
+        headline.appendChild(span);
+        if (!(li === lines.length - 1 && wi === words.length - 1)) {
+          headline.appendChild(document.createTextNode(' '));
+        }
+        delay += 80;
+      });
+      if (li < lines.length - 1) headline.appendChild(document.createElement('br'));
+    });
+  })();
+
+  // Mobile menu toggle
+  (function(){
+    const btn = document.getElementById('hamburgerBtn');
+    const menu = document.getElementById('mobileMenu');
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('open');
+      menu.classList.toggle('open');
+    });
+    menu.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        btn.classList.remove('open');
+        menu.classList.remove('open');
+      });
+    });
+  })();
+
+  // Scroll reveal via IntersectionObserver
+  (function(){
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  })();
+
+  // 3D product icons — a wireframe cube (Dev), network (Team), and shield (Test)
+  (function(){
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function cubeGeometry(){
+      const s = 0.46, edges = [];
+      const v = [
+        [-s,-s,-s],[s,-s,-s],[s,s,-s],[-s,s,-s],
+        [-s,-s, s],[s,-s, s],[s,s, s],[-s,s, s]
+      ];
+      [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]]
+        .forEach(e => edges.push([...v[e[0]], ...v[e[1]]]));
+      return { edges: edges, nodes: [] };
+    }
+
+    function networkGeometry(){
+      const r = 0.58, edges = [], nodes = [[0,0,0,4.5]];
+      const sat = [[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]]
+        .map(p => { const m = r / Math.sqrt(3); return [p[0]*m, p[1]*m, p[2]*m]; });
+      sat.forEach(p => {
+        edges.push([0,0,0, ...p]);
+        nodes.push([...p, 3.2]);
+      });
+      for (let i = 0; i < sat.length; i++){
+        for (let j = i + 1; j < sat.length; j++){
+          edges.push([...sat[i], ...sat[j]]);
+        }
+      }
+      return { edges: edges, nodes: nodes };
+    }
+
+    function shieldGeometry(){
+      const edges = [], D = 0.16;
+      const profile = [[0,0.60],[0.46,0.42],[0.46,-0.04],[0,-0.60],[-0.46,-0.04],[-0.46,0.42]];
+      [-D, D].forEach(z => {
+        profile.forEach((p, i) => {
+          const q = profile[(i+1) % profile.length];
+          edges.push([p[0], p[1], z, q[0], q[1], z]);
+        });
+      });
+      profile.forEach(p => edges.push([p[0], p[1], -D, p[0], p[1], D]));
+      // checkmark on both faces
+      const check = [[-0.19,0.02],[-0.05,-0.15],[0.23,0.22]];
+      [-D, D].forEach(z => {
+        edges.push([check[0][0], check[0][1], z, check[1][0], check[1][1], z]);
+        edges.push([check[1][0], check[1][1], z, check[2][0], check[2][1], z]);
+      });
+      return { edges: edges, nodes: [] };
+    }
+
+    const icons = [
+      { id: 'prodIconDev',  geo: cubeGeometry(),    spin: 0.40, phase: 0.5 },
+      { id: 'prodIconTeam', geo: networkGeometry(), spin: 0.34, phase: 1.6 },
+      { id: 'prodIconTest', geo: shieldGeometry(),  spin: 0.30, phase: 2.6 }
+    ].map(function(def){
+      const canvas = document.getElementById(def.id);
+      if (!canvas) return null;
+      def.canvas = canvas;
+      def.ctx = canvas.getContext('2d');
+      def.W = 0; def.H = 0;
+      return def;
+    }).filter(Boolean);
+    if (!icons.length) return;
+
+    function resizeAll(){
+      icons.forEach(function(ic){
+        const rect = ic.canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        ic.W = rect.width; ic.H = rect.height;
+        if (ic.W === 0 || ic.H === 0) return;
+        ic.canvas.width = ic.W * dpr;
+        ic.canvas.height = ic.H * dpr;
+        ic.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      });
+    }
+    resizeAll();
+    window.addEventListener('resize', resizeAll);
+
+    const tilt = 0.32;
+    const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+
+    function drawIcon(ic, yaw){
+      const ctx = ic.ctx, W = ic.W, H = ic.H;
+      if (W === 0 || H === 0) return;
+      ctx.clearRect(0, 0, W, H);
+      const cx = W * 0.5, cy = H * 0.5;
+      const unit = Math.min(W, H) * 0.62;
+      const focal = 3.0;
+      const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+
+      function proj(x, y, z){
+        const x1 = x*cosY + z*sinY, z1 = -x*sinY + z*cosY;
+        const y2 = y*cosT - z1*sinT, z2 = y*sinT + z1*cosT;
+        const s = focal / (focal + z2);
+        return { sx: cx + x1*unit*s, sy: cy - y2*unit*s, z: z2, s: s };
+      }
+
+      ic.geo.edges.forEach(function(e){
+        const a = proj(e[0], e[1], e[2]);
+        const b = proj(e[3], e[4], e[5]);
+        const t = Math.max(0, Math.min(1, 0.5 - (a.z + b.z) * 0.8));
+        const r = (22 + 38*t)|0, g = (130 + 105*t)|0, bl = (170 + 65*t)|0;
+        ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + bl + ',' + (0.28 + t*0.62).toFixed(3) + ')';
+        ctx.lineWidth = 1.1 + t * 0.8;
+        ctx.beginPath();
+        ctx.moveTo(a.sx, a.sy);
+        ctx.lineTo(b.sx, b.sy);
+        ctx.stroke();
+      });
+
+      ic.geo.nodes.forEach(function(n){
+        const p = proj(n[0], n[1], n[2]);
+        const t = Math.max(0, Math.min(1, 0.5 - p.z * 1.6));
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(34,225,225,' + (0.45 + t*0.5).toFixed(3) + ')';
+        ctx.arc(p.sx, p.sy, n[3] * p.s, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    let last = null;
+    let elapsed = 0;
+    function frame(now){
+      if (last === null) last = now;
+      elapsed += Math.min((now - last) / 1000, 0.05);
+      last = now;
+      icons.forEach(function(ic){ drawIcon(ic, ic.phase + elapsed * ic.spin); });
+      requestAnimationFrame(frame);
+    }
+
+    if (reduceMotion){
+      icons.forEach(function(ic){ drawIcon(ic, ic.phase); });
+    } else {
+      requestAnimationFrame(frame);
+    }
+  })();
+</script>
+
+</body>
+</html>
